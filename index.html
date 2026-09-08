@@ -289,6 +289,202 @@
         .badge-ready{background:#2a3a1e;color:#b6e36a;}
         .badge-recording{background:#3a2a1e;color:#F5A623;}
 
+        /* ===== 结果推荐大卡片 ===== */
+        .result-card {
+            background: linear-gradient(145deg, #1c1c1c 0%, #141414 100%);
+            border: 1px solid #333;
+            border-left: 4px solid #F5A623;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 18px 0;
+        }
+        .result-card-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #f5f5f5;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .result-card-title .emoji { font-size: 24px; }
+        .result-subtitle {
+            color: #888;
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+        .cm360-hero {
+            text-align: center;
+            padding: 20px;
+            background: #0f0f0f;
+            border-radius: 10px;
+            margin-bottom: 18px;
+        }
+        .cm360-big {
+            font-size: 48px;
+            font-weight: 800;
+            color: #F5A623;
+            line-height: 1;
+        }
+        .cm360-unit {
+            font-size: 18px;
+            color: #888;
+            margin-left: 4px;
+        }
+        .cm360-label {
+            font-size: 13px;
+            color: #666;
+            margin-top: 6px;
+        }
+        .sens-type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .sens-low { background: #2a4a2a; color: #7fd87f; }
+        .sens-mid { background: #4a3a1e; color: #F5A623; }
+        .sens-high { background: #4a2a2a; color: #ff7f7f; }
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .result-item {
+            background: #0f0f0f;
+            padding: 12px 14px;
+            border-radius: 8px;
+            border: 1px solid #2a2a2a;
+        }
+        .result-item-label {
+            font-size: 11px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .result-item-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f5f5f5;
+        }
+        .result-item-value.accent { color: #F5A623; }
+        .result-scope-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+        .scope-item {
+            background: #0f0f0f;
+            padding: 10px 12px;
+            border-radius: 6px;
+            border: 1px solid #2a2a2a;
+            text-align: center;
+        }
+        .scope-label { font-size: 11px; color: #666; }
+        .scope-value { font-size: 16px; font-weight: 600; color: #F5A623; }
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .copy-btn-primary {
+            background: #F5A623;
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            width: 100%;
+            transition: all 0.15s;
+        }
+        .copy-btn-primary:hover { background: #e09618; transform: translateY(-1px); }
+        .copy-btn-primary.copied { background: #2a8a4a; color: #fff; }
+
+        /* ===== 当前设置 vs 推荐设置 ===== */
+        .compare-section {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid #2a2a2a;
+        }
+        .compare-section h4 {
+            color: #f5f5f5;
+            font-size: 15px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .compare-section h4 .toggle-icon {
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+        .compare-section.collapsed h4 .toggle-icon {
+            transform: rotate(-90deg);
+        }
+        .compare-content {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .compare-content.hidden { display: none; }
+        .compare-input-group label {
+            font-size: 12px;
+            color: #888;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .compare-input-group input {
+            width: 100%;
+            background: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            padding: 8px 10px;
+            color: #f5f5f5;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        .compare-input-group input:focus {
+            border-color: #F5A623;
+            outline: none;
+        }
+        .compare-diff {
+            margin-top: 14px;
+            background: #0f0f0f;
+            border-radius: 8px;
+            padding: 14px;
+            border: 1px solid #2a2a2a;
+        }
+        .compare-diff-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: 1px solid #1a1a1a;
+            font-size: 13px;
+        }
+        .compare-diff-row:last-child { border-bottom: none; }
+        .diff-label { color: #888; flex: 1; }
+        .diff-values {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .diff-old { color: #ff7f7f; text-decoration: line-through; font-size: 12px; }
+        .diff-arrow { color: #F5A623; font-size: 14px; }
+        .diff-new { color: #7fd87f; font-weight: 600; }
+        .diff-unchanged { color: #666; font-size: 12px; }
+
         /* ===== 个性化推荐区 ===== */
         .recommend-box{
             background:#141414;
@@ -534,6 +730,10 @@
     <div id="mainView">
     <div class="panel">
         <p>操作说明：在下方画布，<strong>按住鼠标左键</strong>，横向完整滑动画布2‑3次，程序记录你的鼠标物理移动习惯。</p >
+        <p class="test-purpose" style="color:#888;font-size:12px;margin-top:6px;border-left:2px solid #F5A623;padding-left:8px;">
+            💡 为什么测：测量你的实际鼠标移动幅度<br>
+            🎯 影响：<strong>所有灵敏度计算的基础</strong>（cm/360）
+        </p>
         <div class="dpi-row">
             <label for="dpiInput">鼠标 DPI：</label>
             <input type="number" id="dpiInput" min="100" max="32000" step="100" value="800">
@@ -550,6 +750,10 @@
     <div class="panel">
         <h3>② 主观追踪测试（模拟开镜跟枪）</h3>
         <p class="result-text">点击开始后倒计时3秒，红点随机出现在画布中并沿随机轨迹移动，请尽量用准星跟随红点，10秒后自动结束。</p >
+        <p class="test-purpose" style="color:#888;font-size:12px;margin-top:6px;border-left:2px solid #F5A623;padding-left:8px;">
+            💡 为什么测：判断你更适合低灵敏还是高灵敏<br>
+            🎯 影响：<strong>常规灵敏度和 ADS 推荐值</strong>
+        </p>
         <canvas id="trackCanvas" class="sub-canvas"></canvas>
         <button id="trackStart">开始追踪测试</button>
         <button id="trackReset" class="secondary">重置</button>
@@ -561,6 +765,10 @@
     <div class="panel">
         <h3>③ 定位急停测试（模拟近战急停定位）</h3>
         <p class="result-text">目标会随机出现在画布内，尽快移动鼠标对准目标，点击鼠标左键确认命中。共10次。</p >
+        <p class="test-purpose" style="color:#888;font-size:12px;margin-top:6px;border-left:2px solid #F5A623;padding-left:8px;">
+            💡 为什么测：判断快速转身和小范围定位能力<br>
+            🎯 影响：<strong>修正常规灵敏度和开火镜头系数</strong>
+        </p>
         <canvas id="stopCanvas" class="sub-canvas"></canvas>
         <button id="stopStart">开始急停测试</button>
         <button id="stopReset" class="secondary">重置</button>
@@ -573,6 +781,10 @@
     <div class="panel">
         <h3>④ 缩放模拟瞄准测试（模拟倍镜精细瞄准）</h3>
         <p class="result-text">画布会模拟不同倍率放大，小目标出现，请精准对准。倍率越大视野越窄，点击切换下一倍率。</p >
+        <p class="test-purpose" style="color:#888;font-size:12px;margin-top:6px;border-left:2px solid #F5A623;padding-left:8px;">
+            💡 为什么测：判断高倍率下是否容易过冲<br>
+            🎯 影响：<strong>2x–8x 各档倍镜灵敏度推荐</strong>
+        </p>
         <canvas id="zoomCanvas" class="sub-canvas"></canvas>
         <button id="zoomStart">开始缩放瞄准测试</button>
         <button id="zoomReset" class="secondary">重置</button>
@@ -581,21 +793,97 @@
         <p class="result-text">平均微小偏移：<span id="zoomOffset">--</span> px</p >
     </div>
 
-    <!-- 测试结果（PUBG） -->
-    <div class="panel">
-        <h3>测试结果（PUBG）</h3>
-        <p class="result-text">360°旋转需要鼠标移动距离：<span id="cm360">--</span> cm</p >
-        <p class="result-text">推荐常规灵敏度：<span id="sensResult">--</span></p >
-        <p class="result-text">推荐垂直灵敏度系数：<span id="vertResult">--</span></p >
+    <!-- 🎯 测试结果推荐大卡片 -->
+    <div class="result-card" id="resultCard" style="opacity:0.6;">
+        <div class="result-card-title">
+            <span class="emoji">🎯</span>
+            你的推荐灵敏度
+        </div>
+        <div class="result-subtitle">完成测试后，这里会显示为你量身定制的 PUBG 灵敏度设置</div>
+
+        <!-- cm/360 核心指标 -->
+        <div class="cm360-hero">
+            <div>
+                <span class="cm360-big" id="cm360">--</span>
+                <span class="cm360-unit">cm / 360°</span>
+            </div>
+            <div class="cm360-label">鼠标旋转一整圈需要移动的距离</div>
+            <div id="sensTypeBadge" style="display:none;" class="sens-type-badge sens-mid">中灵敏度</div>
+        </div>
+
+        <!-- 主参数网格 -->
+        <div class="result-grid">
+            <div class="result-item">
+                <div class="result-item-label">常规灵敏度 (General)</div>
+                <div class="result-item-value accent" id="sensResult">--</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">垂直灵敏度增强</div>
+                <div class="result-item-value" id="vertResult">--</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">瞄准灵敏度 (ADS)</div>
+                <div class="result-item-value" id="aimResult">--</div>
+            </div>
+            <div class="result-item">
+                <div class="result-item-label">开火镜头灵敏度</div>
+                <div class="result-item-value" id="fireResult">--</div>
+            </div>
+        </div>
+
+        <!-- 倍镜灵敏度网格 -->
+        <div class="result-scope-grid">
+            <div class="scope-item"><div class="scope-label">1x (红点/全息)</div><div class="scope-value" id="s1x">--</div></div>
+            <div class="scope-item"><div class="scope-label">2x</div><div class="scope-value" id="s2x">--</div></div>
+            <div class="scope-item"><div class="scope-label">3x</div><div class="scope-value" id="s3x">--</div></div>
+            <div class="scope-item"><div class="scope-label">4x</div><div class="scope-value" id="s4x">--</div></div>
+            <div class="scope-item"><div class="scope-label">6x</div><div class="scope-value" id="s6x">--</div></div>
+            <div class="scope-item"><div class="scope-label">8x</div><div class="scope-value" id="s8x">--</div></div>
+        </div>
+
+        <!-- 个性化建议 -->
         <div class="recommend-box" id="recommendBox" style="display:none;">
             <span class="tag">个性化建议</span>
             <span id="recommendText">完成测试后显示微调建议</span>
         </div>
-        <br>
-        <button id="saveBtn">保存参数到本地</button>
-        <button id="loadBtn" class="secondary">读取已保存参数</button>
-        <button id="refBtn" class="ref-btn">查看职业选手灵敏度参考</button>
-        <button id="streamerBtn" class="streamer-btn">查看主播灵敏度参考</button>
+
+        <!-- 当前设置 vs 推荐设置 -->
+        <div class="compare-section collapsed" id="compareSection">
+            <h4 onclick="toggleCompare()">
+                <span class="toggle-icon">▼</span>
+                📊 当前设置 vs 推荐设置
+            </h4>
+            <div class="compare-content hidden" id="compareContent">
+                <div class="compare-input-group">
+                    <label>当前常规灵敏度</label>
+                    <input type="number" id="curSens" min="1" max="100" placeholder="如 45">
+                </div>
+                <div class="compare-input-group">
+                    <label>当前垂直灵敏度</label>
+                    <input type="number" id="curVert" min="0.1" max="3" step="0.01" placeholder="如 1.00">
+                </div>
+                <div class="compare-input-group">
+                    <label>当前 ADS 灵敏度</label>
+                    <input type="number" id="curAim" min="1" max="100" placeholder="如 42">
+                </div>
+                <div class="compare-input-group">
+                    <label>当前开火镜头灵敏度</label>
+                    <input type="number" id="curFire" min="1" max="100" placeholder="如 40">
+                </div>
+            </div>
+            <button class="btn secondary" style="width:100%;margin-top:10px;" onclick="showCompareDiff()">🔍 对比差异</button>
+            <div class="compare-diff" id="compareDiff" style="display:none;"></div>
+        </div>
+
+        <!-- 一键复制按钮 -->
+        <button class="copy-btn-primary" id="copyAllBtn">📋 一键复制全部 PUBG 参数</button>
+
+        <div class="result-actions">
+            <button id="saveBtn">保存到本地</button>
+            <button id="loadBtn" class="secondary">读取已保存</button>
+            <button id="refBtn" class="secondary">🏆 职业选手</button>
+            <button id="streamerBtn" class="secondary">🎥 主播参考</button>
+        </div>
     </div>
 
     <!-- 职业选手灵敏度参考模态框 -->
@@ -658,25 +946,47 @@ resizeCanvas();
 
 // PUBG经验换算参考（作品集文档写明：经验拟合，非官方算法）
 function calcPUBG(cmPer360){
-    // cmPer360：物理移动多少厘米完成游戏360度转身
-    // 分段阈值按画布实际可达范围设计（800DPI下滑1次≈2.8cm）
     let sens;
-    if(cmPer360 < 4) sens = 43;        // 极高敏，手腕流
-    else if(cmPer360 < 7) sens = 35;   // 高敏
-    else if(cmPer360 < 10) sens = 29;  // 中高敏
-    else if(cmPer360 < 14) sens = 25;  // 中敏
-    else if(cmPer360 < 18) sens = 21;  // 中低敏
-    else if(cmPer360 < 24) sens = 18;  // 低敏
-    else sens = 15;                    // 极低敏，手臂流
+    if(cmPer360 < 4) sens = 43;
+    else if(cmPer360 < 7) sens = 35;
+    else if(cmPer360 < 10) sens = 29;
+    else if(cmPer360 < 14) sens = 25;
+    else if(cmPer360 < 18) sens = 21;
+    else if(cmPer360 < 24) sens = 18;
+    else sens = 15;
 
-    // 垂直灵敏度，PUBG常见区间 0.8‑1.2
     let vert;
     if(cmPer360 < 4) vert = 1.15;
     else if(cmPer360 < 10) vert = 1.05;
     else if(cmPer360 < 18) vert = 1.00;
     else vert = 0.90;
 
-    return {sens:sens.toFixed(1), vert:vert.toFixed(2)};
+    // 瞄准灵敏度 = 常规 × 0.85
+    const aim = Math.round(sens * 0.85);
+    // 开火镜头灵敏度 = 常规 × 0.95
+    const fire = Math.round(sens * 0.95);
+    // 倍镜灵敏度：各档按比例
+    const scope1x = Math.round(sens * 0.55);
+    const scope2x = Math.round(sens * 0.45);
+    const scope3x = Math.round(sens * 0.38);
+    const scope4x = Math.round(sens * 0.32);
+    const scope6x = Math.round(sens * 0.26);
+    const scope8x = Math.round(sens * 0.20);
+
+    return {
+        sens: sens,
+        vert: vert.toFixed(2),
+        aim: aim,
+        fire: fire,
+        scope1x, scope2x, scope3x, scope4x, scope6x, scope8x
+    };
+}
+
+// 判断灵敏度类型
+function getSensType(cmPer360){
+    if(cmPer360 < 7) return { type: 'low', label: '🟢 低灵敏度（手腕流）' };
+    if(cmPer360 < 18) return { type: 'mid', label: '🟡 中灵敏度（均衡型）' };
+    return { type: 'high', label: '🔴 高灵敏度（手臂流）' };
 }
 
 function getDPI(){
@@ -759,15 +1069,113 @@ function drawHint(){
     ctx.fillText(hint, canvas.width / 2, canvas.height / 2);
 }
 
+// ===== 当前设置 vs 推荐设置 =====
+function toggleCompare() {
+    const section = document.getElementById('compareSection');
+    const content = document.getElementById('compareContent');
+    section.classList.toggle('collapsed');
+    content.classList.toggle('hidden');
+}
+
+function showCompareDiff() {
+    const get = (id) => {
+        const v = document.getElementById(id).value;
+        return v ? parseFloat(v) : null;
+    };
+    const curSens = get('curSens');
+    const curVert = get('curVert');
+    const curAim = get('curAim');
+    const curFire = get('curFire');
+
+    if(curSens === null && curVert === null && curAim === null && curFire === null) {
+        alert('请至少输入一项当前设置');
+        return;
+    }
+
+    const cm = parseFloat(document.getElementById('cm360').innerText);
+    if(isNaN(cm)) { alert('请先完成测试'); return; }
+
+    const res = calcPUBG(cm);
+    const rows = [
+        { label: '常规灵敏度', cur: curSens, rec: res.sens },
+        { label: '垂直灵敏度', cur: curVert, rec: res.vert },
+        { label: 'ADS 瞄准灵敏度', cur: curAim, rec: res.aim },
+        { label: '开火镜头灵敏度', cur: curFire, rec: res.fire },
+    ];
+
+    let html = '';
+    rows.forEach(r => {
+        if(r.cur === null) return;
+        const diff = r.rec - r.cur;
+        const diffStr = diff === 0 ? '不变' : (diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1));
+        const cls = diff === 0 ? 'diff-unchanged' : '';
+        html += `
+        <div class="compare-diff-row">
+            <span class="diff-label">${r.label}</span>
+            <div class="diff-values ${cls}">
+                <span class="diff-old">${r.cur}</span>
+                <span class="diff-arrow">→</span>
+                <span class="diff-new">${r.rec}</span>
+                <span class="${cls || 'diff-new'}" style="font-size:11px;margin-left:4px;">(${diffStr})</span>
+            </div>
+        </div>`;
+    });
+
+    document.getElementById('compareDiff').innerHTML = html;
+    document.getElementById('compareDiff').style.display = 'block';
+}
+
+// ===== 一键复制全部参数 =====
+document.getElementById('copyAllBtn').onclick = () => {
+    const cm = document.getElementById('cm360').innerText;
+    if(cm === '--') { alert('请先完成 360° 转身测试'); return; }
+    const dpi = getDPI();
+    const text = `PUBG 灵敏度设置
+===================
+鼠标 DPI: ${dpi}
+360°距离: ${cm} cm
+
+【主参数】
+常规灵敏度: ${document.getElementById('sensResult').innerText}
+垂直灵敏度增强: ${document.getElementById('vertResult').innerText}
+瞄准灵敏度 (ADS): ${document.getElementById('aimResult').innerText}
+开火镜头灵敏度: ${document.getElementById('fireResult').innerText}
+
+【倍镜灵敏度】
+1x (红点/全息): ${document.getElementById('s1x').innerText}
+2x: ${document.getElementById('s2x').innerText}
+3x: ${document.getElementById('s3x').innerText}
+4x: ${document.getElementById('s4x').innerText}
+6x: ${document.getElementById('s6x').innerText}
+8x: ${document.getElementById('s8x').innerText}
+
+— 由 PUBG 灵敏度校准助手生成`;
+
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copyAllBtn');
+        btn.innerText = '✅ 已复制！打开 PUBG 设置粘贴';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.innerText = '📋 一键复制全部 PUBG 参数';
+            btn.classList.remove('copied');
+        }, 2500);
+    }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        alert('已复制到剪贴板');
+    });
+};
+
 document.getElementById('startBtn').onclick=()=>{
     isTesting = true;
     isMouseDown = false;
     totalMouseDeltaX = 0;
     trajectorySegments = [];
-    document.getElementById('cm360').innerText = "--";
-    document.getElementById('sensResult').innerText = "--";
-    document.getElementById('vertResult').innerText = "--";
-    document.getElementById('recommendBox').style.display = "none";
+    resetResultCard();
     updateStatusBadge();
     drawHint();
 }
@@ -776,12 +1184,26 @@ document.getElementById('resetBtn').onclick=()=>{
     isMouseDown = false;
     totalMouseDeltaX = 0;
     trajectorySegments = [];
+    resetResultCard();
+    updateStatusBadge();
+    drawHint();
+}
+
+function resetResultCard(){
+    document.getElementById('resultCard').style.opacity = '0.6';
     document.getElementById('cm360').innerText = "--";
     document.getElementById('sensResult').innerText = "--";
     document.getElementById('vertResult').innerText = "--";
-    document.getElementById('recommendBox').style.display = "none";
-    updateStatusBadge();
-    drawHint();
+    document.getElementById('aimResult').innerText = "--";
+    document.getElementById('fireResult').innerText = "--";
+    document.getElementById('s1x').innerText = "--";
+    document.getElementById('s2x').innerText = "--";
+    document.getElementById('s3x').innerText = "--";
+    document.getElementById('s4x').innerText = "--";
+    document.getElementById('s6x').innerText = "--";
+    document.getElementById('s8x').innerText = "--";
+    document.getElementById('sensTypeBadge').style.display = 'none';
+    document.getElementById('recommendBox').style.display = 'none';
 }
 
 // 鼠标按键状态：仅按住左键时记录
@@ -829,11 +1251,35 @@ function updateResults(){
     const pxToCm = 2.54 / getDPI();
     const totalCm = totalMouseDeltaX * pxToCm;
     const res = calcPUBG(totalCm);
+
+    // 更新卡片为高亮状态
+    document.getElementById('resultCard').style.opacity = '1';
+
+    // 核心指标
     document.getElementById('cm360').innerText = totalCm.toFixed(2);
+
+    // 灵敏度类型标签
+    const sensType = getSensType(totalCm);
+    const typeBadge = document.getElementById('sensTypeBadge');
+    typeBadge.style.display = 'inline-block';
+    typeBadge.className = 'sens-type-badge sens-' + sensType.type;
+    typeBadge.innerText = sensType.label;
+
+    // 主参数
     document.getElementById('sensResult').innerText = res.sens;
     document.getElementById('vertResult').innerText = res.vert;
+    document.getElementById('aimResult').innerText = res.aim;
+    document.getElementById('fireResult').innerText = res.fire;
 
-    // 显示个性化推荐
+    // 倍镜灵敏度
+    document.getElementById('s1x').innerText = res.scope1x;
+    document.getElementById('s2x').innerText = res.scope2x;
+    document.getElementById('s3x').innerText = res.scope3x;
+    document.getElementById('s4x').innerText = res.scope4x;
+    document.getElementById('s6x').innerText = res.scope6x;
+    document.getElementById('s8x').innerText = res.scope8x;
+
+    // 个性化推荐
     const box = document.getElementById('recommendBox');
     const text = document.getElementById('recommendText');
     box.style.display = "block";

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -90,6 +90,11 @@
         button.secondary:hover{
             background:#404040;
         }
+        /* FIX(4)：新增禁用态样式，配合「完成测试」按钮的可用状态切换 */
+        button:disabled{
+            opacity:.45;
+            cursor:not-allowed;
+        }
 
         /* ===== 画布 ===== */
         #testCanvas{
@@ -112,6 +117,10 @@
             margin:14px 0;
             display:block;
         }
+        /* FIX(13)：移动端触摸支持——阻止浏览器默认滚动手势，保证 touch 事件可用 */
+        canvas{
+            touch-action:none;
+        }
 
         /* ===== 结果文字 ===== */
         .result-text{
@@ -122,6 +131,13 @@
         .result-text span {
             color:#F5A623;
             font-weight:600;
+        }
+        /* FIX(1)(3)：结果区警告说明文字样式 */
+        .warn-note{
+            font-size:12px;
+            color:#888;
+            line-height:1.6;
+            margin:10px 0;
         }
 
         /* ===== DPI 输入 ===== */
@@ -167,6 +183,8 @@
         .badge-idle{background:#333;color:#999;}
         .badge-ready{background:#2a3a1e;color:#b6e36a;}
         .badge-recording{background:#3a2a1e;color:#F5A623;}
+        /* FIX(4)：新增「结果已锁定」状态徽章 */
+        .badge-done{background:#1e2a3a;color:#7ab8ff;}
 
         /* ===== 个性化推荐区 ===== */
         .recommend-box{
@@ -407,13 +425,15 @@
 </header>
 
     <div class="panel">
-        <p>操作说明：在下方画布，<strong>按住鼠标左键</strong>，横向完整滑动画布2‑3次，程序记录你的鼠标物理移动习惯。</p >
+        <p>操作说明：在下方画布，<strong>按住鼠标左键</strong>，横向完整滑动画布 2-3 次（每次滑动后松开，尽量保持每次滑动幅度一致），程序记录<strong>每次滑动</strong>的水平移动量并取平均值。滑动完成后点击<strong>「完成测试」</strong>锁定结果。</p >
         <div class="dpi-row">
             <label for="dpiInput">鼠标 DPI：</label>
             <input type="number" id="dpiInput" min="100" max="32000" step="100" value="800">
             <span class="dpi-hint">（鼠标硬件DPI，常见 400 / 800 / 1600）</span>
         </div>
         <button id="startBtn">开始测试</button>
+        <!-- FIX(4)：新增「完成测试」按钮，用于停止数据采集并锁定最终结果 -->
+        <button id="finishBtn" disabled>完成测试</button>
         <button id="resetBtn" class="secondary">重置</button>
         <span id="statusBadge" class="badge-idle">未开始</span>
     </div>
@@ -423,7 +443,8 @@
     <!-- 测试2：主观追踪测试 -->
     <div class="panel">
         <h3>② 主观追踪测试（模拟开镜跟枪）</h3>
-        <p class="result-text">点击开始后倒计时3秒，红点随机出现在画布中并沿随机轨迹移动，请尽量用准星跟随红点，10秒后自动结束。</p >
+        <!-- FIX(8)：明确标注本测试仅为手眼协调练习，不参与灵敏度计算 -->
+        <p class="result-text">⚠ 本测试<strong>仅用于手眼协调练习，不参与灵敏度计算</strong>。点击开始后倒计时3秒，红点随机出现在画布中并沿随机轨迹移动，请尽量用准星跟随红点，10秒后自动结束。</p >
         <canvas id="trackCanvas" class="sub-canvas"></canvas>
         <button id="trackStart">开始追踪测试</button>
         <button id="trackReset" class="secondary">重置</button>
@@ -435,6 +456,12 @@
     <div class="panel">
         <h3>③ 定位急停测试（模拟近战急停定位）</h3>
         <p class="result-text">目标会随机出现在画布内，尽快移动鼠标对准目标，点击鼠标左键确认命中。共10次。</p >
+        <!-- FIX(10)：命中判定半径可配置，默认由 25px 收紧为 14px，提高测试区分度 -->
+        <div class="dpi-row">
+            <label for="stopRadiusInput">命中判定半径：</label>
+            <input type="number" id="stopRadiusInput" min="6" max="40" step="1" value="14">
+            <span class="dpi-hint">px（默认14，越小要求越精准）</span>
+        </div>
         <canvas id="stopCanvas" class="sub-canvas"></canvas>
         <button id="stopStart">开始急停测试</button>
         <button id="stopReset" class="secondary">重置</button>
@@ -453,18 +480,27 @@
         <span id="zoomStatus" class="badge-idle">未开始</span>
         <p class="result-text">当前模拟倍率：<span id="zoomLevel">1x</span></p >
         <p class="result-text">平均微小偏移：<span id="zoomOffset">--</span> px</p >
+        <!-- FIX(9)：分倍率展示平均偏移，替代原先混合倍率取平均的做法 -->
+        <p class="result-text">各倍率平均偏移（px）：<span id="zoomBreakdown">--</span></p >
     </div>
 
     <!-- 测试结果（PUBG） -->
     <div class="panel">
         <h3>测试结果（PUBG）</h3>
-        <p class="result-text">360°旋转需要鼠标移动距离：<span id="cm360">--</span> cm</p >
+        <!-- FIX(1)：主指标改为像素计数（相对参考），不再伪装成精确物理距离 -->
+        <p class="result-text">单次滑动平均水平移动量（像素计数）：<span id="avgPx">--</span> px</p >
+        <!-- FIX(3)：cm/360 由「单次滑动 ≈ 180°转身」的目标推定，并按社区公式换算灵敏度 -->
+        <p class="result-text">360°转身移动距离估算（一次滑动≈180°）：<span id="cm360">--</span> cm</p >
         <p class="result-text">推荐常规灵敏度：<span id="sensResult">--</span></p >
         <p class="result-text">推荐垂直灵敏度系数：<span id="vertResult">--</span></p >
+        <!-- FIX(1)(3)：显式声明数据口径与局限性 -->
+        <p class="warn-note">⚠ 说明：像素移动量为浏览器输入事件的相对参考（<strong>非真实物理距离</strong>）；cm 值为按 DPI 的粗略估算（假设系统指针速度为默认、屏幕缩放 100%）；灵敏度按社区公认公式（400DPI/50灵敏度 ≈ 41.5cm/360）换算，非官方数据。</p>
         <div class="recommend-box" id="recommendBox" style="display:none;">
             <span class="tag">个性化建议</span>
             <span id="recommendText">完成测试后显示微调建议</span>
         </div>
+        <!-- FIX(14)：利用参考选手数据，输出各倍镜的独立推荐值 -->
+        <div class="recommend-box" id="scopeRecommendBox" style="display:none;"></div>
         <br>
         <button id="saveBtn">保存参数到本地</button>
         <button id="loadBtn" class="secondary">读取已保存参数</button>
@@ -477,7 +513,7 @@
         <div class="modal">
             <button class="modal-close" id="modalClose">×</button>
             <h2>PUBG 职业选手灵敏度参考</h2>
-            <div class="desc">点击选手名字查看详细参数；点击「查看全部汇总」查看所有选手完整参数表。黄色高亮为与你的测试结果接近的选手。</div>
+            <div class="desc">点击选手名字查看详细参数；点击「查看全部汇总」查看所有选手完整参数表。黄色高亮为与你的测试结果（cm/360 口径）接近的选手。</div>
             <div id="proNameList" class="name-list"></div>
             <div id="proDetail" class="detail-area"></div>
             <div id="proSummary" class="summary-area" style="display:none;"></div>
@@ -489,7 +525,7 @@
         <div class="modal">
             <button class="modal-close" id="streamerModalClose">×</button>
             <h2>PUBG 主播灵敏度参考</h2>
-            <div class="desc">点击主播名字查看详细参数；点击「查看全部汇总」查看所有主播完整参数表。黄色高亮为与你的测试结果接近的主播。</div>
+            <div class="desc">点击主播名字查看详细参数；点击「查看全部汇总」查看所有主播完整参数表。黄色高亮为与你的测试结果（cm/360 口径）接近的主播。</div>
             <div id="streamerNameList" class="name-list"></div>
             <div id="streamerDetail" class="detail-area"></div>
             <div id="streamerSummary" class="summary-area" style="display:none;"></div>
@@ -514,10 +550,18 @@ const canvas = document.getElementById('testCanvas');
 const ctx = canvas.getContext('2d');
 const dpiInput = document.getElementById('dpiInput');
 const statusBadge = document.getElementById('statusBadge');
+const startBtn = document.getElementById('startBtn');
+const finishBtn = document.getElementById('finishBtn');
+const resetBtn = document.getElementById('resetBtn');
 
-let isTesting = false;
+let isTesting = false;       // 主测试进行中（含等待滑动）
+let isFinished = false;      // FIX(4)：结果是否已锁定（完成测试/应用历史后为 true）
 let isMouseDown = false;
-let totalMouseDeltaX = 0;
+// FIX(2)：不再使用 totalMouseDeltaX 累加所有滑动距离（会导致结果严重偏高）。
+// 改为按「每次按住鼠标滑动的单次水平位移」记录，最终取多次滑动的平均值。
+let strokeDeltas = [];       // 每次按住滑动的水平总位移（像素计数）
+let curStrokeDelta = 0;      // 当前这一次按住滑动的水平位移累计
+let lastScreenX = null;      // FIX(5)：movementX 不可用/为0时用 screenX 差值兜底
 // 分段存储轨迹：每个元素是一段（一次按住滑动的点集合），段之间不连线
 let trajectorySegments = [];
 
@@ -527,27 +571,34 @@ function resizeCanvas(){
     canvas.height = canvas.clientHeight;
     drawHint();
 }
-window.addEventListener('resize',resizeCanvas);
+
+// FIX(12)：统一管理 resize 事件——全局只绑定一次，内部调度所有画布的尺寸更新，
+// 移除原先分散的多个 window.addEventListener('resize', ...) 重复绑定。
+function onResizeAll(){
+    resizeCanvas();
+    resizeTrackCanvas();
+    resizeStopCanvas();
+    resizeZoomCanvas();
+}
+window.addEventListener('resize', onResizeAll);
 resizeCanvas();
 
-// PUBG经验换算参考（作品集文档写明：经验拟合，非官方算法）
+// FIX(3)：灵敏度映射由「主观分段阈值」改为社区公认的 cm/360 换算公式。
+// 公认锚点：PUBG 常规灵敏度 50 @ 400DPI ≈ 41.5 cm/360（社区多源一致的拟合值）。
+// 由 cmPer360 = K / (DPI × sens) 推出 K = 41.5 × 400 × 50 = 830000，
+// 反解 sens = K / (DPI × cmPer360)，并夹取到 PUBG 允许范围 [1, 100]。
+// 注意：该公式为社区拟合近似，非官方数据；垂直灵敏度仍为经验起步建议。
 function calcPUBG(cmPer360){
-    // cmPer360：物理移动多少厘米完成游戏360度转身
-    // 分段阈值按画布实际可达范围设计（800DPI下滑1次≈2.8cm）
-    let sens;
-    if(cmPer360 < 4) sens = 43;        // 极高敏，手腕流
-    else if(cmPer360 < 7) sens = 35;   // 高敏
-    else if(cmPer360 < 10) sens = 29;  // 中高敏
-    else if(cmPer360 < 14) sens = 25;  // 中敏
-    else if(cmPer360 < 18) sens = 21;  // 中低敏
-    else if(cmPer360 < 24) sens = 18;  // 低敏
-    else sens = 15;                    // 极低敏，手臂流
+    const dpi = getDPI();
+    const K = 830000;
+    let sens = K / (dpi * cmPer360);
+    sens = Math.max(1, Math.min(100, sens));
 
-    // 垂直灵敏度，PUBG常见区间 0.8‑1.2
+    // 垂直灵敏度，PUBG常见区间 0.8-1.2（经验起步值，非官方公式）
     let vert;
-    if(cmPer360 < 4) vert = 1.15;
-    else if(cmPer360 < 10) vert = 1.05;
-    else if(cmPer360 < 18) vert = 1.00;
+    if(cmPer360 < 20) vert = 1.10;
+    else if(cmPer360 < 35) vert = 1.05;
+    else if(cmPer360 < 55) vert = 1.00;
     else vert = 0.90;
 
     return {sens:sens.toFixed(1), vert:vert.toFixed(2)};
@@ -558,10 +609,54 @@ function getDPI(){
     return (v > 0) ? v : 800;
 }
 
+// FIX(6)：参考选手的 DPI+灵敏度 换算为 cm/360 的统一口径函数
+function refCm360(p){
+    return 830000 / (p.dpi * p.sens);
+}
+
+// FIX(7)：健壮解析 cm/360 字符串（容忍空格、单位符号、存储格式差异），无效返回 NaN
+function parseCm360(raw){
+    if(typeof raw === 'number') return (isFinite(raw) && raw > 0) ? raw : NaN;
+    if(typeof raw !== 'string') return NaN;
+    const cleaned = raw.replace(/[^\d.]/g, '');
+    const v = parseFloat(cleaned);
+    return (isFinite(v) && v > 0) ? v : NaN;
+}
+
+// 读取当前页面上的 cm/360 结果（未测试时为 null）
+function getCurrentCm360(){
+    const v = parseCm360(document.getElementById('cm360').innerText);
+    return (v > 0) ? v : null;
+}
+
+// FIX(2)：计算多次滑动的平均单次水平位移（像素计数）；测试中会把当前未完成的一次也计入实时显示
+function getAvgStrokePx(){
+    let sum = 0, n = strokeDeltas.length;
+    for(const d of strokeDeltas) sum += d;
+    if(isMouseDown && curStrokeDelta > 0){ sum += curStrokeDelta; n++; }
+    return n > 0 ? sum / n : 0;
+}
+
+// FIX(1)：物理距离换算说明——浏览器无法可靠获得屏幕 PPI，
+// 因此不宣称像素与真实厘米精确等价。这里仅在「1 计数 ≈ 1/DPI 英寸、
+// 系统指针速度为默认」的理想假设下给出 cm 估算值，主指标仍是像素计数。
+function getAvgStrokeCm(){
+    return getAvgStrokePx() / getDPI() * 2.54;
+}
+
+// FIX(3)：按「一次完整滑动 ≈ 180° 转身」的目标推定 cm/360 = 2 × 单次滑动距离
+function getCm360(){
+    return getAvgStrokeCm() * 2;
+}
+
 function updateStatusBadge(){
     if(!isTesting){
         statusBadge.className = "badge-idle";
-        statusBadge.textContent = "未开始";
+        statusBadge.textContent = isFinished ? "已锁定结果" : "未开始";
+    } else if(isFinished){
+        // FIX(4)：新增「已锁定」状态
+        statusBadge.className = "badge-done";
+        statusBadge.textContent = "已锁定结果";
     } else if(isMouseDown){
         statusBadge.className = "badge-recording";
         statusBadge.textContent = "● 记录中";
@@ -569,6 +664,12 @@ function updateStatusBadge(){
         statusBadge.className = "badge-ready";
         statusBadge.textContent = "等待滑动";
     }
+}
+
+// FIX(4)：按测试阶段切换「开始/完成」按钮的可用状态
+function updateButtonStates(){
+    startBtn.disabled = (isTesting && !isFinished);
+    finishBtn.disabled = (!isTesting || isFinished);
 }
 
 function drawHint(){
@@ -608,102 +709,90 @@ function drawHint(){
         ctx.fill();
     }
 
-    // 实时距离显示（右上角）
-    if(isTesting && totalMouseDeltaX > 0){
-        const pxToCm = 2.54 / getDPI();
-        const totalCm = totalMouseDeltaX * pxToCm;
+    // 实时数据显示（右上角）
+    // FIX(1)：以像素计数为相对参考显示，不再伪装为精确物理距离
+    if(isTesting && (curStrokeDelta > 0 || strokeDeltas.length > 0)){
+        let txt = "本次 " + Math.round(curStrokeDelta) + " px";
+        if(strokeDeltas.length > 0){
+            txt += " · 平均 " + Math.round(getAvgStrokePx()) + " px";
+        }
         ctx.fillStyle = "#f0f0f0";
-        ctx.font = "bold 16px sans-serif";
+        ctx.font = "bold 15px sans-serif";
         ctx.textAlign = "right";
-        ctx.fillText("已移动: " + totalCm.toFixed(2) + " cm", canvas.width - 16, 28);
+        ctx.fillText(txt, canvas.width - 16, 28);
     }
 
-    // 提示文字
+    // FIX(11)：提示文字移到画布底部，避免遮挡中央轨迹
     ctx.fillStyle = "#888";
-    ctx.font = "18px sans-serif";
+    ctx.font = "16px sans-serif";
     ctx.textAlign = "center";
     let hint;
     if(!isTesting){
         hint = "点击「开始测试」按钮";
+    } else if(isFinished){
+        hint = "结果已锁定：点击「重置」清空，或再次「开始测试」重新测量";
     } else if(!isMouseDown){
-        hint = "请按住鼠标左键横向滑动";
+        hint = "请按住鼠标左键横向滑动，每次滑动后松开";
     } else {
-        hint = "继续滑动…松开鼠标可暂停";
+        hint = "继续滑动…松开鼠标结束本次滑动";
     }
-    ctx.fillText(hint, canvas.width / 2, canvas.height / 2);
+    ctx.fillText(hint, canvas.width / 2, canvas.height - 24);
 }
 
-document.getElementById('startBtn').onclick=()=>{
-    isTesting = true;
-    isMouseDown = false;
-    totalMouseDeltaX = 0;
-    trajectorySegments = [];
-    document.getElementById('cm360').innerText = "--";
-    document.getElementById('sensResult').innerText = "--";
-    document.getElementById('vertResult').innerText = "--";
-    document.getElementById('recommendBox').style.display = "none";
-    updateStatusBadge();
-    drawHint();
-}
-document.getElementById('resetBtn').onclick=()=>{
-    isTesting = false;
-    isMouseDown = false;
-    totalMouseDeltaX = 0;
-    trajectorySegments = [];
-    document.getElementById('cm360').innerText = "--";
-    document.getElementById('sensResult').innerText = "--";
-    document.getElementById('vertResult').innerText = "--";
-    document.getElementById('recommendBox').style.display = "none";
-    updateStatusBadge();
-    drawHint();
-}
-
-// 鼠标按键状态：仅按住左键时记录
-canvas.addEventListener('mousedown', (e) => {
-    if(e.button !== 0 || !isTesting) return;
-    isMouseDown = true;
-    // 新建一段轨迹
-    const rect = canvas.getBoundingClientRect();
-    trajectorySegments.push([{ x: e.clientX - rect.left, y: e.clientY - rect.top }]);
-    updateStatusBadge();
-    drawHint();
-});
-window.addEventListener('mouseup', () => {
-    if(isMouseDown){
-        isMouseDown = false;
-        updateStatusBadge();
-        drawHint();
-    }
-});
-
-// DPI 变化时实时重算结果
-dpiInput.addEventListener('input', () => {
-    if(totalMouseDeltaX > 0){
-        updateResults();
-    }
-    drawHint();
-});
-
-// 生成个性化推荐文本
-function getRecommendation(totalCm, sens, vert){
+// 生成个性化推荐文本（cm360 为 cm/360 口径）
+function getRecommendation(cm360, sens, vert){
     let advice;
-    if(totalCm < 7){
-        advice = "你的 cm/360 偏短（" + totalCm.toFixed(1) + "cm），属于手腕流高灵敏度。建议先适应，若压枪抖动大可逐步降低常规灵敏度 2‑3 点。";
-    } else if(totalCm < 14){
-        advice = "你的 cm/360 为 " + totalCm.toFixed(1) + "cm，属于均衡区间，适合大多数场景。可在此基础上微调 ±2 点找到最舒适的压枪手感。";
+    if(cm360 < 20){
+        advice = "你的 cm/360 估算值约 " + cm360.toFixed(1) + "cm，属于高敏手腕流。若压枪抖动大，可逐步降低常规灵敏度 2-3 点。";
+    } else if(cm360 < 35){
+        advice = "你的 cm/360 估算值约 " + cm360.toFixed(1) + "cm，属于中高敏，兼顾转点与压枪。可在此基础上微调 ±2 点找到最舒适的手感。";
+    } else if(cm360 < 55){
+        advice = "你的 cm/360 估算值约 " + cm360.toFixed(1) + "cm，属于均衡区间，适合大多数场景。可在此基础上微调 ±2 点找到最舒适的手感。";
     } else {
-        advice = "你的 cm/360 偏长（" + totalCm.toFixed(1) + "cm），属于手臂流低灵敏度。转向需大幅移动鼠标，建议确认桌面空间足够，否则可适当提高灵敏度。";
+        advice = "你的 cm/360 估算值约 " + cm360.toFixed(1) + "cm，属于低敏手臂流。转向需要大幅移动鼠标，建议确认桌面空间足够，否则可适当提高灵敏度。";
     }
     advice += " 参考常规灵敏度 " + sens + "、垂直 " + vert + "，可在游戏内对照微调。";
     return advice;
 }
 
-// 统一更新结果与推荐
+// FIX(14)：倍镜独立推荐——选取 cm/360 与用户最接近的职业选手作为模板，
+// 按「模板有效灵敏度(DPI×sens) / 用户有效灵敏度」的比例折算其各倍镜数值，
+// 输出红点/2x/3x/4x/6x/8x/15x 的推荐起步值。
+function renderScopeRecommend(){
+    const box = document.getElementById('scopeRecommendBox');
+    const userSens = parseFloat(document.getElementById('sensResult').innerText);
+    const userCm = getCurrentCm360();
+    if(!(userSens > 0) || userCm === null){
+        box.style.display = "none";
+        return;
+    }
+    let best = null, bestDiff = Infinity;
+    for(const p of proPlayers){
+        const d = Math.abs(refCm360(p) - userCm);
+        if(d < bestDiff){ bestDiff = d; best = p; }
+    }
+    if(!best){ box.style.display = "none"; return; }
+    const ratio = (best.sens * best.dpi) / (userSens * getDPI());
+    const s = (v) => Math.max(1, Math.min(100, Math.round(v * ratio)));
+    box.innerHTML =
+        '<span class="tag">倍镜推荐</span>' +
+        '参考模板：<strong>' + best.name + '</strong>（其 cm/360 ≈ ' + refCm360(best).toFixed(1) + 'cm）<br>' +
+        '红点/全息 ' + s(best.scope1x) + ' · 2x ' + s(best.scope2x) + ' · 3x ' + s(best.scope3x) +
+        ' · 4x ' + s(best.scope4x) + ' · 6x ' + s(best.scope6x) + ' · 8x ' + s(best.scope8x) +
+        ' · 15x ' + s(best.scope15x) +
+        '<br><span style="color:#888;font-size:12px;">按你的常规灵敏度与模板选手的比例折算，仅作起步参考，建议进入训练场微调。</span>';
+    box.style.display = "block";
+}
+
+// 统一更新结果与推荐（测试中实时刷新，完成后锁定）
 function updateResults(){
-    const pxToCm = 2.54 / getDPI();
-    const totalCm = totalMouseDeltaX * pxToCm;
-    const res = calcPUBG(totalCm);
-    document.getElementById('cm360').innerText = totalCm.toFixed(2);
+    const avgPx = getAvgStrokePx();
+    document.getElementById('avgPx').innerText = avgPx > 0 ? Math.round(avgPx) : "--";
+    if(avgPx <= 0) return;
+
+    const cm360 = getCm360();
+    const res = calcPUBG(cm360);
+    document.getElementById('cm360').innerText = cm360.toFixed(2);
     document.getElementById('sensResult').innerText = res.sens;
     document.getElementById('vertResult').innerText = res.vert;
 
@@ -711,21 +800,152 @@ function updateResults(){
     const box = document.getElementById('recommendBox');
     const text = document.getElementById('recommendText');
     box.style.display = "block";
-    text.textContent = getRecommendation(totalCm, res.sens, res.vert);
+    text.textContent = getRecommendation(cm360, res.sens, res.vert);
+
+    // FIX(14)：同步更新倍镜推荐
+    renderScopeRecommend();
 }
 
-canvas.addEventListener('mousemove', (e) => {
-    if(!isTesting || !isMouseDown) return;
+document.getElementById('startBtn').onclick=()=>{
+    // FIX(4)：开始测试仅做初始化；最终结果需点击「完成测试」锁定
+    isTesting = true;
+    isFinished = false;
+    isMouseDown = false;
+    strokeDeltas = [];
+    curStrokeDelta = 0;
+    lastScreenX = null;
+    trajectorySegments = [];
+    document.getElementById('avgPx').innerText = "--";
+    document.getElementById('cm360').innerText = "--";
+    document.getElementById('sensResult').innerText = "--";
+    document.getElementById('vertResult').innerText = "--";
+    document.getElementById('recommendBox').style.display = "none";
+    document.getElementById('scopeRecommendBox').style.display = "none";
+    updateStatusBadge();
+    updateButtonStates();
+    drawHint();
+}
+
+// FIX(4)：新增「完成测试」——停止数据采集并锁定当前结果，同时自动保存
+document.getElementById('finishBtn').onclick=()=>{
+    if(!isTesting || isFinished) return;
+    if(getAvgStrokePx() <= 0){
+        alert("尚未记录到有效滑动：请先按住鼠标左键横向滑动至少一次");
+        return;
+    }
+    isFinished = true;
+    isMouseDown = false;
+    lastScreenX = null;
+    updateResults();
+    saveLatestResult(); // FIX(15)：完成后自动保存最新结果
+    updateStatusBadge();
+    updateButtonStates();
+    drawHint();
+}
+
+document.getElementById('resetBtn').onclick=()=>{
+    isTesting = false;
+    isFinished = false;
+    isMouseDown = false;
+    strokeDeltas = [];
+    curStrokeDelta = 0;
+    lastScreenX = null;
+    trajectorySegments = [];
+    document.getElementById('avgPx').innerText = "--";
+    document.getElementById('cm360').innerText = "--";
+    document.getElementById('sensResult').innerText = "--";
+    document.getElementById('vertResult').innerText = "--";
+    document.getElementById('recommendBox').style.display = "none";
+    document.getElementById('scopeRecommendBox').style.display = "none";
+    updateStatusBadge();
+    updateButtonStates();
+    drawHint();
+}
+
+// 鼠标按键状态：仅按住左键时记录
+canvas.addEventListener('mousedown', (e) => {
+    if(e.button !== 0 || !isTesting || isFinished) return;
+    isMouseDown = true;
+    // FIX(2)：每次按住重新计一次位移，避免跨滑动累加
+    curStrokeDelta = 0;
+    // FIX(5)：记录 screenX 基准，供 movementX 缺失/为0时兜底
+    lastScreenX = e.screenX;
+    // 新建一段轨迹
+    const rect = canvas.getBoundingClientRect();
+    trajectorySegments.push([{ x: e.clientX - rect.left, y: e.clientY - rect.top }]);
+    updateStatusBadge();
+    drawHint();
+});
+
+// 结束一次滑动（松开鼠标/抬起手指共用）
+function finishStroke(){
+    if(!isMouseDown) return;
+    isMouseDown = false;
+    lastScreenX = null;
+    // FIX(2)：仅统计有效滑动（本次位移>0），存入单次位移列表
+    if(curStrokeDelta > 0) strokeDeltas.push(curStrokeDelta);
+    curStrokeDelta = 0;
+    updateStatusBadge();
+    drawHint();
+}
+window.addEventListener('mouseup', finishStroke);
+
+// FIX(2)(5)：主测试位移采集
+// - 仅统计「按住期间」的移动（松开后不计入）；
+// - movementX 不可用或为 0 且屏幕坐标确有变化时，用 screenX 差值兜底；
+// - 监听挂在 window 上，鼠标短暂滑出画布也不丢数据（轨迹点仍只记录画布内）。
+window.addEventListener('mousemove', (e) => {
+    if(!isTesting || !isMouseDown || isFinished) return;
+    let dx = e.movementX;
+    const screenDelta = (lastScreenX === null) ? 0 : (e.screenX - lastScreenX);
+    if(typeof dx !== 'number' || isNaN(dx) || (dx === 0 && Math.abs(screenDelta) > 0)){
+        dx = screenDelta; // FIX(5)：兜底方案
+    }
+    lastScreenX = e.screenX;
+    curStrokeDelta += Math.abs(dx);
+
+    // 轨迹点仅记录画布范围内的点（限频，避免点过密）
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left;
     const my = e.clientY - rect.top;
+    if(mx >= 0 && my >= 0 && mx <= canvas.width && my <= canvas.height){
+        const curSeg = trajectorySegments[trajectorySegments.length - 1];
+        if(curSeg){
+            const lastPt = curSeg[curSeg.length - 1];
+            if(!lastPt || Math.abs(mx - lastPt.x) > 1 || Math.abs(my - lastPt.y) > 1){
+                curSeg.push({ x: mx, y: my });
+            }
+        }
+    }
 
-    // 累加水平移动距离（取绝对值，支持左右来回滑动）
-    // 注意：仅按住鼠标时累加，松开后的移动不计入，数据不受段间连接线影响
-    const dx = Math.abs(e.movementX);
-    totalMouseDeltaX += dx;
+    updateResults();
+    drawHint();
+});
 
-    // 记录轨迹点到当前段（限频，避免点过密）
+// FIX(13)：主画布移动端触摸支持（单指滑动等效按住左键滑动）
+let lastTouchX = null, lastTouchY = null;
+canvas.addEventListener('touchstart', (e) => {
+    if(!isTesting || isFinished) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    isMouseDown = true;
+    curStrokeDelta = 0;
+    lastTouchX = t.clientX;
+    lastTouchY = t.clientY;
+    const rect = canvas.getBoundingClientRect();
+    trajectorySegments.push([{ x: t.clientX - rect.left, y: t.clientY - rect.top }]);
+    updateStatusBadge();
+    drawHint();
+}, {passive:false});
+canvas.addEventListener('touchmove', (e) => {
+    if(!isTesting || !isMouseDown || isFinished) return;
+    e.preventDefault();
+    const t = e.touches[0];
+    curStrokeDelta += Math.abs(t.clientX - lastTouchX); // 触摸无 movementX，直接取两次触点差值
+    lastTouchX = t.clientX;
+    lastTouchY = t.clientY;
+    const rect = canvas.getBoundingClientRect();
+    const mx = t.clientX - rect.left, my = t.clientY - rect.top;
     const curSeg = trajectorySegments[trajectorySegments.length - 1];
     if(curSeg){
         const lastPt = curSeg[curSeg.length - 1];
@@ -733,14 +953,28 @@ canvas.addEventListener('mousemove', (e) => {
             curSeg.push({ x: mx, y: my });
         }
     }
-
     updateResults();
     drawHint();
-})
+}, {passive:false});
+canvas.addEventListener('touchend', (e) => {
+    if(!isMouseDown) return;
+    e.preventDefault();
+    finishStroke();
+}, {passive:false});
+
+// DPI 变化时实时重算结果
+dpiInput.addEventListener('input', () => {
+    if(isTesting || isFinished){
+        updateResults();
+    }
+    drawHint();
+});
 
 // LocalStorage保存读取
 // ============ 历史记录保存 / 读取 ============
 const HISTORY_KEY = "pubg_sens_history";
+// FIX(15)：新增「最新结果」自动保存键，与历史记录分开存储
+const LATEST_KEY = "pubg_sens_latest";
 
 // 读取历史数组
 function getHistory(){
@@ -765,6 +999,50 @@ function formatTime(ts){
            " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
 }
 
+// FIX(15)：完成测试后自动保存最新结果到 localStorage
+function saveLatestResult(){
+    try {
+        const d = {
+            time: Date.now(),
+            avgPx: document.getElementById('avgPx').innerText,
+            cm360: document.getElementById('cm360').innerText,
+            sens: document.getElementById('sensResult').innerText,
+            vert: document.getElementById('vertResult').innerText,
+            dpi: getDPI()
+        };
+        localStorage.setItem(LATEST_KEY, JSON.stringify(d));
+    } catch(err) {
+        // 存储不可用（隐私模式等）时静默失败，不影响主流程
+    }
+}
+
+// FIX(15)：页面加载时自动恢复上次测试结果
+function restoreLatestResult(){
+    try {
+        const raw = localStorage.getItem(LATEST_KEY);
+        if(!raw) return;
+        const d = JSON.parse(raw);
+        if(!d || typeof d !== 'object') return;
+        // FIX(7)：恢复时同样做健壮解析
+        const cm = parseCm360(d.cm360);
+        if(!(cm > 0)) return;
+        if(d.dpi && d.dpi > 0){ dpiInput.value = d.dpi; }
+        document.getElementById('cm360').innerText = cm.toFixed(2);
+        document.getElementById('sensResult').innerText = d.sens || "--";
+        document.getElementById('vertResult').innerText = d.vert || "--";
+        if(d.avgPx){ document.getElementById('avgPx').innerText = d.avgPx; }
+        isFinished = true;
+        document.getElementById('recommendBox').style.display = "block";
+        document.getElementById('recommendText').textContent =
+            "已恢复上次测试结果：" + getRecommendation(cm, d.sens || "--", d.vert || "--");
+        renderScopeRecommend();
+        updateStatusBadge();
+        updateButtonStates();
+    } catch(err) {
+        // 数据损坏则静默忽略
+    }
+}
+
 document.getElementById('saveBtn').onclick=()=>{
     const sen = document.getElementById('sensResult').innerText;
     if(sen === "--" || !sen){ alert("请先完成测试再保存"); return; }
@@ -779,7 +1057,8 @@ document.getElementById('saveBtn').onclick=()=>{
             cm360: cm,
             sens: sen,
             vert: ver,
-            dpi: dpi
+            dpi: dpi,
+            avgPx: document.getElementById('avgPx').innerText
         });
         saveHistory(arr);
         alert("参数已保存（共 " + arr.length + " 条记录）");
@@ -798,7 +1077,9 @@ function renderHistoryList(){
     }
     // 按时间倒序
     arr.sort((a,b) => b.time - a.time);
-    list.innerHTML = arr.map(item => `
+    list.innerHTML = arr.map(item => {
+        const pxSpan = item.avgPx ? '<span>平均位移: <strong>' + item.avgPx + '</strong> px</span>' : "";
+        return `
         <div class="history-item">
             <div class="history-info">
                 <div class="history-time">${formatTime(item.time)}</div>
@@ -807,6 +1088,7 @@ function renderHistoryList(){
                     <span>cm/360: <strong>${item.cm360}</strong></span>
                     <span>常规: <strong>${item.sens}</strong></span>
                     <span>垂直: <strong>${item.vert}</strong></span>
+                    ${pxSpan}
                 </div>
             </div>
             <div class="history-btns">
@@ -814,7 +1096,7 @@ function renderHistoryList(){
                 <button class="secondary" onclick="deleteHistoryRecord(${item.id})">删除</button>
             </div>
         </div>
-    `).join("");
+    `}).join("");
 }
 
 // 应用某条记录到主页面
@@ -822,13 +1104,26 @@ function applyHistoryRecord(id){
     const arr = getHistory();
     const item = arr.find(r => r.id === id);
     if(!item) return;
-    document.getElementById('cm360').innerText = item.cm360;
-    document.getElementById('sensResult').innerText = item.sens;
-    document.getElementById('vertResult').innerText = item.vert;
-    if(item.dpi){ dpiInput.value = item.dpi; }
-    const cm = parseFloat(item.cm360) || 0;
+    // FIX(7)：对 cm360 做健壮解析（去除空格/单位符号等），无效则提示用户而不是静默写坏数据
+    const cm = parseCm360(item.cm360);
+    if(!(cm > 0)){
+        alert("该条记录的 cm/360 数据无效，无法应用。");
+        return;
+    }
+    if(item.dpi && item.dpi > 0){ dpiInput.value = item.dpi; }
+    document.getElementById('cm360').innerText = cm.toFixed(2);
+    document.getElementById('sensResult').innerText = item.sens || "--";
+    document.getElementById('vertResult').innerText = item.vert || "--";
+    if(item.avgPx){ document.getElementById('avgPx').innerText = item.avgPx; }
+    isTesting = false;
+    isFinished = true;
+    isMouseDown = false;
     document.getElementById('recommendBox').style.display = "block";
-    document.getElementById('recommendText').textContent = getRecommendation(cm, item.sens, item.vert);
+    document.getElementById('recommendText').textContent =
+        "已应用历史记录：" + getRecommendation(cm, item.sens || "--", item.vert || "--");
+    renderScopeRecommend();
+    updateStatusBadge();
+    updateButtonStates();
     document.getElementById('historyModal').classList.remove('show');
 }
 
@@ -872,13 +1167,13 @@ const proPlayers = [
     { name: "chocoTaco", dpi: 800, sens: 26, vert: 1.05, aim: 24, fire: 28, scope1x: 14, scope2x: 13, scope3x: 12, scope4x: 11, scope6x: 9, scope8x: 8, scope15x: 7, note: "知名主播职业向" }
 ];
 
-function getCurSens(){
-    const s = document.getElementById('sensResult').innerText;
-    return s === "--" ? null : parseFloat(s);
-}
+// FIX(6)：高亮判定统一为 cm/360 口径——先把参考选手的 DPI+灵敏度换算成 cm/360，
+// 再与用户结果比较（相对误差 ≤15% 视为接近），不再要求 DPI 相同。
 function isHighlight(p){
-    const cs = getCurSens();
-    return cs !== null && Math.abs(p.sens - cs) <= 3 && p.dpi === getDPI();
+    const uc = getCurrentCm360();
+    if(uc === null) return false;
+    const rc = refCm360(p);
+    return Math.abs(rc - uc) <= uc * 0.15;
 }
 
 function renderNameList(listEl, data, type){
@@ -908,12 +1203,14 @@ function showDetail(type, idx){
     const summaryEl = document.getElementById(type === "pro" ? "proSummary" : "streamerSummary");
     summaryEl.style.display = "none";
     const hl = isHighlight(p);
+    // FIX(6)：详情中同时展示换算后的 cm/360，方便用户对比口径
     detailEl.innerHTML = `
         <table>
             <tr><th>参数</th><th>数值</th></tr>
             <tr><td>名字</td><td><strong>${p.name}</strong>${hl ? ' ⭐ 接近你的灵敏度' : ''}</td></tr>
             <tr><td>DPI</td><td>${p.dpi}</td></tr>
             <tr><td>常规灵敏度</td><td>${p.sens}</td></tr>
+            <tr><td>换算 cm/360</td><td>≈ ${refCm360(p).toFixed(1)} cm</td></tr>
             <tr><td>垂直灵敏度增强</td><td>${p.vert.toFixed(2)}</td></tr>
             <tr><td>瞄准灵敏度</td><td>${p.aim}</td></tr>
             <tr><td>开火镜头灵敏度</td><td>${p.fire}</td></tr>
@@ -939,7 +1236,8 @@ function showSummary(type){
         const hl = isHighlight(p);
         return `<tr class="${hl ? 'highlight-row' : ''}">
             <td>${p.name}${hl ? ' ⭐' : ''}</td>
-            <td>${p.dpi}</td><td>${p.sens}</td><td>${p.vert.toFixed(2)}</td>
+            <td>${p.dpi}</td><td>${p.sens}</td>
+            <td>≈ ${refCm360(p).toFixed(1)} cm</td><td>${p.vert.toFixed(2)}</td>
             <td>${p.aim}</td><td>${p.fire}</td>
             <td>${p.scope1x}</td><td>${p.scope2x}</td><td>${p.scope3x}</td>
             <td>${p.scope4x}</td><td>${p.scope6x}</td><td>${p.scope8x}</td><td>${p.scope15x}</td>
@@ -949,7 +1247,7 @@ function showSummary(type){
     summaryEl.innerHTML = `
         <table>
             <thead><tr>
-                <th>名字</th><th>DPI</th><th>常规</th><th>垂直</th><th>瞄准</th><th>开火</th>
+                <th>名字</th><th>DPI</th><th>常规</th><th>cm/360</th><th>垂直</th><th>瞄准</th><th>开火</th>
                 <th>红点</th><th>2x</th><th>3x</th><th>4x</th><th>6x</th><th>8x</th><th>15x</th><th>备注</th>
             </tr></thead>
             <tbody>${rows}</tbody>
@@ -1124,6 +1422,8 @@ function trackLoop(){
     trackAnimId = requestAnimationFrame(trackLoop);
 }
 
+// FIX(8)：追踪测试结果仅作为手眼协调练习参考，不参与灵敏度计算——
+// trackOffsetList 只用于本面板展示，不写入主测试的任何数据。
 function endTrackTest(){
     trackRunning = false;
     cancelAnimationFrame(trackAnimId);
@@ -1155,8 +1455,20 @@ trackCanvas.addEventListener('mousemove',(e)=>{
     trackMouseY = e.clientY - rect.top;
 });
 
-window.addEventListener('resize', ()=>{ resizeTrackCanvas(); });
-resizeTrackCanvas();
+// FIX(13)：追踪测试触摸支持
+function updateTrackPointer(t){
+    const rect = trackCanvas.getBoundingClientRect();
+    trackMouseX = t.clientX - rect.left;
+    trackMouseY = t.clientY - rect.top;
+}
+trackCanvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    updateTrackPointer(e.touches[0]);
+}, {passive:false});
+trackCanvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    updateTrackPointer(e.touches[0]);
+}, {passive:false});
 
 // ============ 测试③：定位急停测试 ============
 const stopCanvas = document.getElementById('stopCanvas');
@@ -1176,6 +1488,13 @@ function drawStopBg(){
     stopCtx.fillStyle="#161616";
     stopCtx.fillRect(0,0,stopCanvas.width,stopCanvas.height);
 }
+
+// FIX(10)：命中判定半径由固定 25px 改为可配置（默认 14px），提高测试区分度
+function getStopRadius(){
+    const v = parseFloat(document.getElementById('stopRadiusInput').value);
+    return (isFinite(v) && v > 0) ? v : 14;
+}
+
 function nextStopTarget(){
     if(stopCount >= 10){
         stopRunning = false;
@@ -1196,6 +1515,18 @@ function nextStopTarget(){
     stopCtx.arc(stopTargetX, stopTargetY, 14, 0, Math.PI*2);
     stopCtx.fill();
     stopStartTime = performance.now();
+}
+
+// FIX(10)：命中判定逻辑抽成共用函数，供鼠标与触摸共用
+function handleStopHit(mx, my){
+    if(!stopRunning) return;
+    const dist = Math.hypot(mx - stopTargetX, my - stopTargetY);
+    if(dist < getStopRadius()){
+        stopCount++;
+        stopTimeList.push(performance.now() - stopStartTime);
+        document.getElementById('stopCount').innerText = stopCount + " / 10";
+        nextStopTarget();
+    }
 }
 
 document.getElementById('stopStart').onclick = ()=>{
@@ -1222,18 +1553,17 @@ document.getElementById('stopReset').onclick = ()=>{
     s.innerText = "未开始";
 };
 stopCanvas.addEventListener('mousedown',(e)=>{
-    if(!stopRunning) return;
+    if(e.button !== 0) return;
     const rect = stopCanvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
-    const dist = Math.hypot(mx - stopTargetX, my - stopTargetY);
-    if(dist < 25){
-        stopCount++;
-        stopTimeList.push(performance.now() - stopStartTime);
-        document.getElementById('stopCount').innerText = stopCount + " / 10";
-        nextStopTarget();
-    }
+    handleStopHit(e.clientX - rect.left, e.clientY - rect.top);
 });
+// FIX(13)：急停测试触摸支持（点按目标即命中）
+stopCanvas.addEventListener('touchstart',(e)=>{
+    e.preventDefault();
+    const rect = stopCanvas.getBoundingClientRect();
+    const t = e.touches[0];
+    handleStopHit(t.clientX - rect.left, t.clientY - rect.top);
+},{passive:false});
 
 // ============ 测试④：缩放模拟瞄准测试 ============
 const zoomCanvas = document.getElementById('zoomCanvas');
@@ -1242,7 +1572,8 @@ let zoomRunning = false;
 let zoomLevelIdx = 0;
 const zoomLevels = [1, 2, 3, 4, 6];
 let zoomTargetX = 0, zoomTargetY = 0;
-let zoomOffsetList = [];
+// FIX(9)：不再混合所有倍率取平均，改为分倍率分别记录偏移
+let zoomOffsetByLevel = [];
 let zoomMouseX = 0, zoomMouseY = 0;
 
 function resizeZoomCanvas(){
@@ -1274,9 +1605,23 @@ function nextZoomTarget(){
         const s = document.getElementById('zoomStatus');
         s.className = "badge-idle";
         s.innerText = "测试完成";
-        if(zoomOffsetList.length > 0){
-            const avg = zoomOffsetList.reduce((a,b)=>a+b,0)/zoomOffsetList.length;
-            document.getElementById('zoomOffset').innerText = avg.toFixed(2);
+        // FIX(9)：分别计算各倍率的平均偏移并展示；总平均取各倍率平均的均值
+        const parts = [];
+        let sumAvg = 0, cnt = 0;
+        zoomLevels.forEach((zl, i) => {
+            const arr = zoomOffsetByLevel[i] || [];
+            if(arr.length === 0){
+                parts.push(zl + "x: --");
+                return;
+            }
+            const avg = arr.reduce((a,b)=>a+b,0) / arr.length;
+            parts.push(zl + "x: " + avg.toFixed(1));
+            sumAvg += avg;
+            cnt++;
+        });
+        document.getElementById('zoomBreakdown').innerText = parts.join(" · ");
+        if(cnt > 0){
+            document.getElementById('zoomOffset').innerText = (sumAvg / cnt).toFixed(2);
         }
         return;
     }
@@ -1291,8 +1636,10 @@ function nextZoomTarget(){
 document.getElementById('zoomStart').onclick = ()=>{
     zoomRunning = true;
     zoomLevelIdx = 0;
-    zoomOffsetList = [];
+    // FIX(9)：为每个倍率初始化独立的偏移数组
+    zoomOffsetByLevel = zoomLevels.map(() => []);
     document.getElementById('zoomOffset').innerText = "--";
+    document.getElementById('zoomBreakdown').innerText = "--";
     const s = document.getElementById('zoomStatus');
     s.className = "";
     s.innerText = "测试中";
@@ -1302,10 +1649,11 @@ document.getElementById('zoomStart').onclick = ()=>{
 document.getElementById('zoomReset').onclick = ()=>{
     zoomRunning = false;
     zoomLevelIdx = 0;
-    zoomOffsetList = [];
+    zoomOffsetByLevel = [];
     drawZoomBg();
     document.getElementById('zoomLevel').innerText = "1x";
     document.getElementById('zoomOffset').innerText = "--";
+    document.getElementById('zoomBreakdown').innerText = "--";
     const s = document.getElementById('zoomStatus');
     s.className = "badge-idle";
     s.innerText = "未开始";
@@ -1315,21 +1663,45 @@ zoomCanvas.addEventListener('mousemove',(e)=>{
     zoomMouseX = e.clientX - rect.left;
     zoomMouseY = e.clientY - rect.top;
     if(!zoomRunning) return;
-    zoomOffsetList.push(Math.hypot(zoomMouseX - zoomTargetX, zoomMouseY - zoomTargetY));
+    // FIX(9)：偏移计入当前倍率的数组，而非全局混合
+    const cur = zoomOffsetByLevel[zoomLevelIdx];
+    if(cur) cur.push(Math.hypot(zoomMouseX - zoomTargetX, zoomMouseY - zoomTargetY));
     drawZoomFrame();
 });
-zoomCanvas.addEventListener('mousedown',()=>{
+zoomCanvas.addEventListener('mousedown',(e)=>{
+    if(e.button !== 0) return;
     if(!zoomRunning) return;
     zoomLevelIdx++;
     nextZoomTarget();
 });
+// FIX(13)：缩放测试触摸支持（点按切换倍率，滑动记录偏移）
+zoomCanvas.addEventListener('touchstart',(e)=>{
+    e.preventDefault();
+    const rect = zoomCanvas.getBoundingClientRect();
+    const t = e.touches[0];
+    zoomMouseX = t.clientX - rect.left;
+    zoomMouseY = t.clientY - rect.top;
+    if(!zoomRunning) return;
+    zoomLevelIdx++;
+    nextZoomTarget();
+},{passive:false});
+zoomCanvas.addEventListener('touchmove',(e)=>{
+    e.preventDefault();
+    const rect = zoomCanvas.getBoundingClientRect();
+    const t = e.touches[0];
+    zoomMouseX = t.clientX - rect.left;
+    zoomMouseY = t.clientY - rect.top;
+    if(!zoomRunning) return;
+    const cur = zoomOffsetByLevel[zoomLevelIdx];
+    if(cur) cur.push(Math.hypot(zoomMouseX - zoomTargetX, zoomMouseY - zoomTargetY));
+    drawZoomFrame();
+},{passive:false});
 
-window.addEventListener('resize', ()=>{
-    resizeStopCanvas();
-    resizeZoomCanvas();
-});
-resizeStopCanvas();
-resizeZoomCanvas();
+// FIX(12)：初始化各子画布尺寸（原代码在底部重复绑定 resize，已统一到 onResizeAll）
+onResizeAll();
+
+// FIX(15)：页面加载时自动恢复上次测试结果
+restoreLatestResult();
 </script>
 </body>
 </html>

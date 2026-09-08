@@ -1,0 +1,1335 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PUBG 灵敏度校准助手</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #0d0d0d;
+            color: #e8e8e8;
+            font-family: system-ui, "Microsoft YaHei", sans-serif;
+            max-width: 920px;
+            margin: 24px auto 40px;
+            padding: 0 20px;
+        }
+
+        /* ===== 顶部标题区 ===== */
+        .hero {
+            position: relative;
+            width: 100%;
+            padding: 32px;
+            margin: 0 0 24px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+            border: 1px solid #2a2a2a;
+            box-sizing: border-box;
+        }
+        .hero-content {
+            text-align: center;
+        }
+        .hero-content h1 {
+            font-size: 28px;
+            color: #f5f5f5;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+        }
+        .hero-content h1 .accent {
+            color: #F5A623;
+        }
+        .hero-content .tip {
+            color: #c0c0c0;
+            font-size: 13px;
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ===== 面板 ===== */
+        .panel{
+            background:#1a1a1a;
+            padding:20px;
+            border-radius:10px;
+            margin:18px 0;
+            border:1px solid #2c2c2c;
+            border-left: 3px solid #F5A623;
+        }
+        .panel p {
+            color:#d4d4d4;
+            font-size:14px;
+            line-height:1.6;
+        }
+
+        /* ===== 按钮 ===== */
+        button{
+            background:#F5A623;
+            color:#1a1a1a;
+            border:none;
+            padding:10px 18px;
+            border-radius:6px;
+            cursor:pointer;
+            font-size:14px;
+            font-weight:600;
+            margin:4px 4px 4px 0;
+            transition: background 0.15s;
+        }
+        button:hover{
+            background:#e09618;
+        }
+        button.secondary{
+            background:#333;
+            color:#ddd;
+        }
+        button.secondary:hover{
+            background:#404040;
+        }
+
+        /* ===== 画布 ===== */
+        #testCanvas{
+            width:100%;
+            height:420px;
+            background:#161616;
+            border: 1px solid #333;
+            border-radius:10px;
+            cursor:crosshair;
+            margin:18px 0;
+            display:block;
+        }
+        .sub-canvas{
+            width:100%;
+            height:360px;
+            background:#161616;
+            border:1px solid #333;
+            border-radius:10px;
+            cursor:crosshair;
+            margin:14px 0;
+            display:block;
+        }
+
+        /* ===== 结果文字 ===== */
+        .result-text{
+            font-size:16px;
+            margin:10px 0;
+            color:#d4d4d4;
+        }
+        .result-text span {
+            color:#F5A623;
+            font-weight:600;
+        }
+
+        /* ===== DPI 输入 ===== */
+        .dpi-row{
+            display:flex;
+            align-items:center;
+            gap:10px;
+            margin:14px 0;
+        }
+        .dpi-row label{
+            font-size:14px;
+            color:#ccc;
+        }
+        .dpi-row input{
+            width:100px;
+            padding:8px 10px;
+            background:#0d0d0d;
+            border:1px solid #444;
+            border-radius:6px;
+            color:#e8e8e8;
+            font-size:15px;
+            text-align:center;
+        }
+        .dpi-row input:focus{
+            outline:none;
+            border-color:#F5A623;
+        }
+        .dpi-hint{
+            font-size:12px;
+            color:#888;
+        }
+
+        /* ===== 状态徽章 ===== */
+        #statusBadge{
+            display:inline-block;
+            padding:3px 12px;
+            border-radius:3px;
+            font-size:12px;
+            font-weight:600;
+            margin-left:8px;
+            letter-spacing:0.5px;
+        }
+        .badge-idle{background:#333;color:#999;}
+        .badge-ready{background:#2a3a1e;color:#b6e36a;}
+        .badge-recording{background:#3a2a1e;color:#F5A623;}
+
+        /* ===== 个性化推荐区 ===== */
+        .recommend-box{
+            background:#141414;
+            border:1px solid #333;
+            border-left:3px solid #F5A623;
+            border-radius:6px;
+            padding:14px 16px;
+            margin:14px 0;
+            font-size:14px;
+            line-height:1.7;
+            color:#cfcfcf;
+        }
+        .recommend-box .tag{
+            display:inline-block;
+            background:#2a2a2a;
+            color:#F5A623;
+            padding:2px 10px;
+            border-radius:3px;
+            font-size:12px;
+            font-weight:600;
+            margin-right:8px;
+        }
+
+        /* ===== 参考按钮 ===== */
+        .ref-btn{
+            background:#6b7280;
+            color:#fff;
+        }
+        .ref-btn:hover{
+            background:#4b5563;
+        }
+        .streamer-btn{
+            background:#57534e;
+            color:#fff;
+        }
+        .streamer-btn:hover{
+            background:#3f3a36;
+        }
+
+        /* ===== 模态框 ===== */
+        .modal-mask{
+            display:none;
+            position:fixed;
+            top:0;right:0;bottom:0;left:0;
+            background:rgba(0,0,0,0.78);
+            z-index:1000;
+            justify-content:center;
+            align-items:center;
+            padding:20px;
+        }
+        .modal-mask.show{display:flex;}
+        .modal{
+            background:#1a1a1a;
+            border:1px solid #333;
+            border-radius:10px;
+            max-width:800px;
+            width:100%;
+            max-height:85vh;
+            overflow-y:auto;
+            padding:24px;
+            position:relative;
+        }
+        .modal-close{
+            position:absolute;
+            top:12px;
+            right:16px;
+            background:none;
+            border:none;
+            color:#888;
+            font-size:24px;
+            cursor:pointer;
+            line-height:1;
+            padding:0;
+        }
+        .modal-close:hover{color:#F5A623;}
+        .modal h2{
+            font-size:20px;
+            margin-bottom:6px;
+            padding-right:30px;
+            color:#f0f0f0;
+        }
+        .modal .desc{
+            color:#999;
+            font-size:13px;
+            margin-bottom:16px;
+            line-height:1.6;
+        }
+        .modal table{
+            width:100%;
+            border-collapse:collapse;
+            font-size:14px;
+        }
+        .modal th, .modal td{
+            border:1px solid #333;
+            padding:10px 12px;
+            text-align:left;
+        }
+        .modal th{
+            background:#222;
+            color:#F5A623;
+            font-weight:600;
+        }
+        .modal tr:hover td{
+            background:#202020;
+        }
+        .highlight-row td{
+            background:#2a2618 !important;
+            color:#F5A623;
+        }
+        /* 名字按钮列表 */
+        .name-list{
+            display:flex;
+            flex-wrap:wrap;
+            gap:8px;
+            margin:12px 0;
+        }
+        .name-btn{
+            background:#2c2c2c;
+            color:#d4d4d4;
+            border:1px solid #444;
+            padding:6px 14px;
+            border-radius:6px;
+            cursor:pointer;
+            font-size:13px;
+            transition:all 0.2s;
+        }
+        .name-btn:hover{
+            background:#3a3a3a;
+            border-color:#F5A623;
+        }
+        .name-btn.active{
+            background:#F5A623;
+            color:#1a1a1a;
+            border-color:#F5A623;
+        }
+        .name-btn.summary-btn{
+            background:#1a1a1a;
+            border-color:#F5A623;
+            color:#F5A623;
+            font-weight:600;
+        }
+        .name-btn.highlight-name{
+            border-color:#F5A623;
+            color:#F5A623;
+        }
+        .detail-area{
+            margin-top:16px;
+        }
+        .detail-area table, .summary-area table{
+            width:100%;
+            border-collapse:collapse;
+            font-size:13px;
+        }
+        .detail-area th, .detail-area td,
+        .summary-area th, .summary-area td{
+            border:1px solid #333;
+            padding:7px 6px;
+            text-align:center;
+        }
+        .detail-area th, .summary-area th{
+            background:#222;
+            color:#F5A623;
+            font-weight:600;
+        }
+        .summary-area{
+            max-height:500px;
+            overflow-y:auto;
+            margin-top:16px;
+        }
+        /* 历史记录列表 */
+        .history-list{
+            max-height:360px;
+            overflow-y:auto;
+            margin:12px 0;
+        }
+        .history-item{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            padding:12px 14px;
+            margin-bottom:8px;
+            background:#1e1e1e;
+            border:1px solid #2c2c2c;
+            border-radius:8px;
+        }
+        .history-item:hover{
+            border-color:#3a3a3a;
+        }
+        .history-info{
+            flex:1;
+            min-width:0;
+        }
+        .history-time{
+            color:#F5A623;
+            font-size:13px;
+            font-weight:600;
+            margin-bottom:6px;
+        }
+        .history-meta{
+            color:#aaa;
+            font-size:13px;
+            line-height:1.5;
+        }
+        .history-meta span{
+            margin-right:14px;
+        }
+        .history-meta strong{
+            color:#f5f5f5;
+        }
+        .history-btns{
+            display:flex;
+            gap:8px;
+            flex-shrink:0;
+        }
+        .history-btns button{
+            padding:6px 12px;
+            font-size:12px;
+        }
+        .history-actions{
+            text-align:center;
+            margin-top:12px;
+        }
+        .history-empty{
+            text-align:center;
+            color:#888;
+            padding:30px 0;
+            font-size:14px;
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <div class="hero-content">
+            <h1><span class="accent">PUBG</span> 灵敏度校准助手</h1>
+            <div class="tip">⚠ 浏览器鼠标输入与游戏引擎存在差异，本工具仅作为辅助参考，非官方工具</div>
+        </div>
+</header>
+
+    <div class="panel">
+        <p>操作说明：在下方画布，<strong>按住鼠标左键</strong>，横向完整滑动画布2‑3次，程序记录你的鼠标物理移动习惯。</p >
+        <div class="dpi-row">
+            <label for="dpiInput">鼠标 DPI：</label>
+            <input type="number" id="dpiInput" min="100" max="32000" step="100" value="800">
+            <span class="dpi-hint">（鼠标硬件DPI，常见 400 / 800 / 1600）</span>
+        </div>
+        <button id="startBtn">开始测试</button>
+        <button id="resetBtn" class="secondary">重置</button>
+        <span id="statusBadge" class="badge-idle">未开始</span>
+    </div>
+
+    <canvas id="testCanvas"></canvas>
+
+    <!-- 测试2：主观追踪测试 -->
+    <div class="panel">
+        <h3>② 主观追踪测试（模拟开镜跟枪）</h3>
+        <p class="result-text">点击开始后倒计时3秒，红点随机出现在画布中并沿随机轨迹移动，请尽量用准星跟随红点，10秒后自动结束。</p >
+        <canvas id="trackCanvas" class="sub-canvas"></canvas>
+        <button id="trackStart">开始追踪测试</button>
+        <button id="trackReset" class="secondary">重置</button>
+        <span id="trackStatus" class="badge-idle">未开始</span>
+        <p class="result-text">平均瞄准偏移：<span id="trackOffset">--</span> px</p >
+    </div>
+
+    <!-- 测试3：定位急停测试 -->
+    <div class="panel">
+        <h3>③ 定位急停测试（模拟近战急停定位）</h3>
+        <p class="result-text">目标会随机出现在画布内，尽快移动鼠标对准目标，点击鼠标左键确认命中。共10次。</p >
+        <canvas id="stopCanvas" class="sub-canvas"></canvas>
+        <button id="stopStart">开始急停测试</button>
+        <button id="stopReset" class="secondary">重置</button>
+        <span id="stopStatus" class="badge-idle">未开始</span>
+        <p class="result-text">平均定位耗时：<span id="stopAvgTime">--</span> ms</p >
+        <p class="result-text">命中次数：<span id="stopCount">0</span> / 10</p >
+    </div>
+
+    <!-- 测试4：缩放模拟瞄准测试 -->
+    <div class="panel">
+        <h3>④ 缩放模拟瞄准测试（模拟倍镜精细瞄准）</h3>
+        <p class="result-text">画布会模拟不同倍率放大，小目标出现，请精准对准。倍率越大视野越窄，点击切换下一倍率。</p >
+        <canvas id="zoomCanvas" class="sub-canvas"></canvas>
+        <button id="zoomStart">开始缩放瞄准测试</button>
+        <button id="zoomReset" class="secondary">重置</button>
+        <span id="zoomStatus" class="badge-idle">未开始</span>
+        <p class="result-text">当前模拟倍率：<span id="zoomLevel">1x</span></p >
+        <p class="result-text">平均微小偏移：<span id="zoomOffset">--</span> px</p >
+    </div>
+
+    <!-- 测试结果（PUBG） -->
+    <div class="panel">
+        <h3>测试结果（PUBG）</h3>
+        <p class="result-text">360°旋转需要鼠标移动距离：<span id="cm360">--</span> cm</p >
+        <p class="result-text">推荐常规灵敏度：<span id="sensResult">--</span></p >
+        <p class="result-text">推荐垂直灵敏度系数：<span id="vertResult">--</span></p >
+        <div class="recommend-box" id="recommendBox" style="display:none;">
+            <span class="tag">个性化建议</span>
+            <span id="recommendText">完成测试后显示微调建议</span>
+        </div>
+        <br>
+        <button id="saveBtn">保存参数到本地</button>
+        <button id="loadBtn" class="secondary">读取已保存参数</button>
+        <button id="refBtn" class="ref-btn">查看职业选手灵敏度参考</button>
+        <button id="streamerBtn" class="streamer-btn">查看主播灵敏度参考</button>
+    </div>
+
+    <!-- 职业选手灵敏度参考模态框 -->
+    <div class="modal-mask" id="proModal">
+        <div class="modal">
+            <button class="modal-close" id="modalClose">×</button>
+            <h2>PUBG 职业选手灵敏度参考</h2>
+            <div class="desc">点击选手名字查看详细参数；点击「查看全部汇总」查看所有选手完整参数表。黄色高亮为与你的测试结果接近的选手。</div>
+            <div id="proNameList" class="name-list"></div>
+            <div id="proDetail" class="detail-area"></div>
+            <div id="proSummary" class="summary-area" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- 主播灵敏度参考模态框 -->
+    <div class="modal-mask" id="streamerModal">
+        <div class="modal">
+            <button class="modal-close" id="streamerModalClose">×</button>
+            <h2>PUBG 主播灵敏度参考</h2>
+            <div class="desc">点击主播名字查看详细参数；点击「查看全部汇总」查看所有主播完整参数表。黄色高亮为与你的测试结果接近的主播。</div>
+            <div id="streamerNameList" class="name-list"></div>
+            <div id="streamerDetail" class="detail-area"></div>
+            <div id="streamerSummary" class="summary-area" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- 历史记录模态框 -->
+    <div class="modal-mask" id="historyModal">
+        <div class="modal">
+            <button class="modal-close" id="historyModalClose">×</button>
+            <h2>测试历史记录</h2>
+            <div class="desc">点击「应用」可恢复该次测试结果到主页面；点击「删除」可移除单条记录。</div>
+            <div id="historyList" class="history-list"></div>
+            <div class="history-actions">
+                <button id="clearHistoryBtn" class="secondary">清空全部记录</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+const canvas = document.getElementById('testCanvas');
+const ctx = canvas.getContext('2d');
+const dpiInput = document.getElementById('dpiInput');
+const statusBadge = document.getElementById('statusBadge');
+
+let isTesting = false;
+let isMouseDown = false;
+let totalMouseDeltaX = 0;
+// 分段存储轨迹：每个元素是一段（一次按住滑动的点集合），段之间不连线
+let trajectorySegments = [];
+
+// 适配画布真实尺寸
+function resizeCanvas(){
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+    drawHint();
+}
+window.addEventListener('resize',resizeCanvas);
+resizeCanvas();
+
+// PUBG经验换算参考（作品集文档写明：经验拟合，非官方算法）
+function calcPUBG(cmPer360){
+    // cmPer360：物理移动多少厘米完成游戏360度转身
+    // 分段阈值按画布实际可达范围设计（800DPI下滑1次≈2.8cm）
+    let sens;
+    if(cmPer360 < 4) sens = 43;        // 极高敏，手腕流
+    else if(cmPer360 < 7) sens = 35;   // 高敏
+    else if(cmPer360 < 10) sens = 29;  // 中高敏
+    else if(cmPer360 < 14) sens = 25;  // 中敏
+    else if(cmPer360 < 18) sens = 21;  // 中低敏
+    else if(cmPer360 < 24) sens = 18;  // 低敏
+    else sens = 15;                    // 极低敏，手臂流
+
+    // 垂直灵敏度，PUBG常见区间 0.8‑1.2
+    let vert;
+    if(cmPer360 < 4) vert = 1.15;
+    else if(cmPer360 < 10) vert = 1.05;
+    else if(cmPer360 < 18) vert = 1.00;
+    else vert = 0.90;
+
+    return {sens:sens.toFixed(1), vert:vert.toFixed(2)};
+}
+
+function getDPI(){
+    const v = parseInt(dpiInput.value, 10);
+    return (v > 0) ? v : 800;
+}
+
+function updateStatusBadge(){
+    if(!isTesting){
+        statusBadge.className = "badge-idle";
+        statusBadge.textContent = "未开始";
+    } else if(isMouseDown){
+        statusBadge.className = "badge-recording";
+        statusBadge.textContent = "● 记录中";
+    } else {
+        statusBadge.className = "badge-ready";
+        statusBadge.textContent = "等待滑动";
+    }
+}
+
+function drawHint(){
+    // 背景
+    ctx.fillStyle = "#161616";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 绘制轨迹（分段，段间不连线）
+    ctx.strokeStyle = "#5b8db5";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    let allPoints = [];
+    for(const seg of trajectorySegments){
+        if(seg.length < 2) continue;
+        allPoints = allPoints.concat(seg);
+        ctx.beginPath();
+        ctx.moveTo(seg[0].x, seg[0].y);
+        for(let i = 1; i < seg.length; i++){
+            ctx.lineTo(seg[i].x, seg[i].y);
+        }
+        ctx.stroke();
+    }
+
+    // 起点（第一段首点）和终点（最后一段末点）标记
+    if(allPoints.length > 1){
+        const start = allPoints[0];
+        const end = allPoints[allPoints.length - 1];
+        ctx.fillStyle = "#4ade80";
+        ctx.beginPath();
+        ctx.arc(start.x, start.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#f87171";
+        ctx.beginPath();
+        ctx.arc(end.x, end.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // 实时距离显示（右上角）
+    if(isTesting && totalMouseDeltaX > 0){
+        const pxToCm = 2.54 / getDPI();
+        const totalCm = totalMouseDeltaX * pxToCm;
+        ctx.fillStyle = "#f0f0f0";
+        ctx.font = "bold 16px sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText("已移动: " + totalCm.toFixed(2) + " cm", canvas.width - 16, 28);
+    }
+
+    // 提示文字
+    ctx.fillStyle = "#888";
+    ctx.font = "18px sans-serif";
+    ctx.textAlign = "center";
+    let hint;
+    if(!isTesting){
+        hint = "点击「开始测试」按钮";
+    } else if(!isMouseDown){
+        hint = "请按住鼠标左键横向滑动";
+    } else {
+        hint = "继续滑动…松开鼠标可暂停";
+    }
+    ctx.fillText(hint, canvas.width / 2, canvas.height / 2);
+}
+
+document.getElementById('startBtn').onclick=()=>{
+    isTesting = true;
+    isMouseDown = false;
+    totalMouseDeltaX = 0;
+    trajectorySegments = [];
+    document.getElementById('cm360').innerText = "--";
+    document.getElementById('sensResult').innerText = "--";
+    document.getElementById('vertResult').innerText = "--";
+    document.getElementById('recommendBox').style.display = "none";
+    updateStatusBadge();
+    drawHint();
+}
+document.getElementById('resetBtn').onclick=()=>{
+    isTesting = false;
+    isMouseDown = false;
+    totalMouseDeltaX = 0;
+    trajectorySegments = [];
+    document.getElementById('cm360').innerText = "--";
+    document.getElementById('sensResult').innerText = "--";
+    document.getElementById('vertResult').innerText = "--";
+    document.getElementById('recommendBox').style.display = "none";
+    updateStatusBadge();
+    drawHint();
+}
+
+// 鼠标按键状态：仅按住左键时记录
+canvas.addEventListener('mousedown', (e) => {
+    if(e.button !== 0 || !isTesting) return;
+    isMouseDown = true;
+    // 新建一段轨迹
+    const rect = canvas.getBoundingClientRect();
+    trajectorySegments.push([{ x: e.clientX - rect.left, y: e.clientY - rect.top }]);
+    updateStatusBadge();
+    drawHint();
+});
+window.addEventListener('mouseup', () => {
+    if(isMouseDown){
+        isMouseDown = false;
+        updateStatusBadge();
+        drawHint();
+    }
+});
+
+// DPI 变化时实时重算结果
+dpiInput.addEventListener('input', () => {
+    if(totalMouseDeltaX > 0){
+        updateResults();
+    }
+    drawHint();
+});
+
+// 生成个性化推荐文本
+function getRecommendation(totalCm, sens, vert){
+    let advice;
+    if(totalCm < 7){
+        advice = "你的 cm/360 偏短（" + totalCm.toFixed(1) + "cm），属于手腕流高灵敏度。建议先适应，若压枪抖动大可逐步降低常规灵敏度 2‑3 点。";
+    } else if(totalCm < 14){
+        advice = "你的 cm/360 为 " + totalCm.toFixed(1) + "cm，属于均衡区间，适合大多数场景。可在此基础上微调 ±2 点找到最舒适的压枪手感。";
+    } else {
+        advice = "你的 cm/360 偏长（" + totalCm.toFixed(1) + "cm），属于手臂流低灵敏度。转向需大幅移动鼠标，建议确认桌面空间足够，否则可适当提高灵敏度。";
+    }
+    advice += " 参考常规灵敏度 " + sens + "、垂直 " + vert + "，可在游戏内对照微调。";
+    return advice;
+}
+
+// 统一更新结果与推荐
+function updateResults(){
+    const pxToCm = 2.54 / getDPI();
+    const totalCm = totalMouseDeltaX * pxToCm;
+    const res = calcPUBG(totalCm);
+    document.getElementById('cm360').innerText = totalCm.toFixed(2);
+    document.getElementById('sensResult').innerText = res.sens;
+    document.getElementById('vertResult').innerText = res.vert;
+
+    // 显示个性化推荐
+    const box = document.getElementById('recommendBox');
+    const text = document.getElementById('recommendText');
+    box.style.display = "block";
+    text.textContent = getRecommendation(totalCm, res.sens, res.vert);
+}
+
+canvas.addEventListener('mousemove', (e) => {
+    if(!isTesting || !isMouseDown) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+
+    // 累加水平移动距离（取绝对值，支持左右来回滑动）
+    // 注意：仅按住鼠标时累加，松开后的移动不计入，数据不受段间连接线影响
+    const dx = Math.abs(e.movementX);
+    totalMouseDeltaX += dx;
+
+    // 记录轨迹点到当前段（限频，避免点过密）
+    const curSeg = trajectorySegments[trajectorySegments.length - 1];
+    if(curSeg){
+        const lastPt = curSeg[curSeg.length - 1];
+        if(!lastPt || Math.abs(mx - lastPt.x) > 1 || Math.abs(my - lastPt.y) > 1){
+            curSeg.push({ x: mx, y: my });
+        }
+    }
+
+    updateResults();
+    drawHint();
+})
+
+// LocalStorage保存读取
+// ============ 历史记录保存 / 读取 ============
+const HISTORY_KEY = "pubg_sens_history";
+
+// 读取历史数组
+function getHistory(){
+    try {
+        const str = localStorage.getItem(HISTORY_KEY);
+        return str ? JSON.parse(str) : [];
+    } catch(err){
+        return [];
+    }
+}
+
+// 保存历史数组
+function saveHistory(arr){
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
+}
+
+// 生成时间戳字符串
+function formatTime(ts){
+    const d = new Date(ts);
+    const pad = (n) => String(n).padStart(2, "0");
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate()) +
+           " " + pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
+}
+
+document.getElementById('saveBtn').onclick=()=>{
+    const sen = document.getElementById('sensResult').innerText;
+    if(sen === "--" || !sen){ alert("请先完成测试再保存"); return; }
+    const cm = document.getElementById('cm360').innerText;
+    const ver = document.getElementById('vertResult').innerText;
+    const dpi = getDPI();
+    try {
+        const arr = getHistory();
+        arr.push({
+            id: Date.now(),
+            time: Date.now(),
+            cm360: cm,
+            sens: sen,
+            vert: ver,
+            dpi: dpi
+        });
+        saveHistory(arr);
+        alert("参数已保存（共 " + arr.length + " 条记录）");
+    } catch(err) {
+        alert("保存失败：" + err.message);
+    }
+}
+
+// 渲染历史记录列表
+function renderHistoryList(){
+    const list = document.getElementById('historyList');
+    const arr = getHistory();
+    if(arr.length === 0){
+        list.innerHTML = '<div class="history-empty">暂无测试记录</div>';
+        return;
+    }
+    // 按时间倒序
+    arr.sort((a,b) => b.time - a.time);
+    list.innerHTML = arr.map(item => `
+        <div class="history-item">
+            <div class="history-info">
+                <div class="history-time">${formatTime(item.time)}</div>
+                <div class="history-meta">
+                    <span>DPI: <strong>${item.dpi}</strong></span>
+                    <span>cm/360: <strong>${item.cm360}</strong></span>
+                    <span>常规: <strong>${item.sens}</strong></span>
+                    <span>垂直: <strong>${item.vert}</strong></span>
+                </div>
+            </div>
+            <div class="history-btns">
+                <button onclick="applyHistoryRecord(${item.id})">应用</button>
+                <button class="secondary" onclick="deleteHistoryRecord(${item.id})">删除</button>
+            </div>
+        </div>
+    `).join("");
+}
+
+// 应用某条记录到主页面
+function applyHistoryRecord(id){
+    const arr = getHistory();
+    const item = arr.find(r => r.id === id);
+    if(!item) return;
+    document.getElementById('cm360').innerText = item.cm360;
+    document.getElementById('sensResult').innerText = item.sens;
+    document.getElementById('vertResult').innerText = item.vert;
+    if(item.dpi){ dpiInput.value = item.dpi; }
+    const cm = parseFloat(item.cm360) || 0;
+    document.getElementById('recommendBox').style.display = "block";
+    document.getElementById('recommendText').textContent = getRecommendation(cm, item.sens, item.vert);
+    document.getElementById('historyModal').classList.remove('show');
+}
+
+// 删除某条记录
+function deleteHistoryRecord(id){
+    if(!confirm("确定删除这条记录？")) return;
+    let arr = getHistory();
+    arr = arr.filter(r => r.id !== id);
+    saveHistory(arr);
+    renderHistoryList();
+}
+
+// 清空全部记录
+document.getElementById('clearHistoryBtn').onclick = () => {
+    if(getHistory().length === 0){ alert("暂无记录"); return; }
+    if(!confirm("确定清空全部历史记录？此操作不可恢复。")) return;
+    saveHistory([]);
+    renderHistoryList();
+};
+
+// 历史记录模态框
+const historyModal = document.getElementById('historyModal');
+document.getElementById('loadBtn').onclick=()=>{
+    renderHistoryList();
+    historyModal.classList.add('show');
+}
+document.getElementById('historyModalClose').onclick = () => {
+    historyModal.classList.remove('show');
+}
+historyModal.addEventListener('click', (e) => {
+    if(e.target === historyModal) historyModal.classList.remove('show');
+});
+
+// ============ 职业选手灵敏度参考 ============
+const proPlayers = [
+    { name: "Pio", dpi: 400, sens: 45, vert: 0.85, aim: 41, fire: 36, scope1x: 36, scope2x: 39, scope3x: 36, scope4x: 36, scope6x: 36, scope8x: 36, scope15x: 36, note: "韩国前职业转主播" },
+    { name: "LongSkr", dpi: 400, sens: 48, vert: 0.85, aim: 45, fire: 33, scope1x: 33, scope2x: 33, scope3x: 43, scope4x: 35, scope6x: 35, scope8x: 35, scope15x: 35, note: "国内知名职业选手" },
+    { name: "17shou（17兽）", dpi: 800, sens: 24, vert: 1.00, aim: 22, fire: 26, scope1x: 13, scope2x: 12, scope3x: 11, scope4x: 10, scope6x: 8, scope8x: 7, scope15x: 6, note: "国内老牌职业，手臂流" },
+    { name: "lionkk（龙KK）", dpi: 800, sens: 22, vert: 0.95, aim: 20, fire: 24, scope1x: 12, scope2x: 11, scope3x: 10, scope4x: 9, scope6x: 7, scope8x: 6, scope15x: 5, note: "PGC世界冠军" },
+    { name: "ibiza", dpi: 800, sens: 21, vert: 1.10, aim: 19, fire: 23, scope1x: 11, scope2x: 10, scope3x: 9, scope4x: 8, scope6x: 6, scope8x: 5, scope15x: 4, note: "欧美知名职业" },
+    { name: "chocoTaco", dpi: 800, sens: 26, vert: 1.05, aim: 24, fire: 28, scope1x: 14, scope2x: 13, scope3x: 12, scope4x: 11, scope6x: 9, scope8x: 8, scope15x: 7, note: "知名主播职业向" }
+];
+
+function getCurSens(){
+    const s = document.getElementById('sensResult').innerText;
+    return s === "--" ? null : parseFloat(s);
+}
+function isHighlight(p){
+    const cs = getCurSens();
+    return cs !== null && Math.abs(p.sens - cs) <= 3 && p.dpi === getDPI();
+}
+
+function renderNameList(listEl, data, type){
+    const hl = type === "pro" ? "pro" : "streamer";
+    let html = data.map((p, i) =>
+        `<button class="name-btn${isHighlight(p) ? ' highlight-name' : ''}" data-idx="${i}" data-type="${hl}">${p.name}${isHighlight(p) ? ' ⭐' : ''}</button>`
+    ).join("");
+    html += `<button class="name-btn summary-btn" data-type="${hl}" data-summary="1">查看全部汇总</button>`;
+    listEl.innerHTML = html;
+    listEl.querySelectorAll('.name-btn').forEach(btn => {
+        btn.onclick = () => {
+            listEl.querySelectorAll('.name-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            if(btn.dataset.summary === "1"){
+                showSummary(hl);
+            } else {
+                showDetail(hl, parseInt(btn.dataset.idx));
+            }
+        };
+    });
+}
+
+function showDetail(type, idx){
+    const data = type === "pro" ? proPlayers : streamers;
+    const p = data[idx];
+    const detailEl = document.getElementById(type === "pro" ? "proDetail" : "streamerDetail");
+    const summaryEl = document.getElementById(type === "pro" ? "proSummary" : "streamerSummary");
+    summaryEl.style.display = "none";
+    const hl = isHighlight(p);
+    detailEl.innerHTML = `
+        <table>
+            <tr><th>参数</th><th>数值</th></tr>
+            <tr><td>名字</td><td><strong>${p.name}</strong>${hl ? ' ⭐ 接近你的灵敏度' : ''}</td></tr>
+            <tr><td>DPI</td><td>${p.dpi}</td></tr>
+            <tr><td>常规灵敏度</td><td>${p.sens}</td></tr>
+            <tr><td>垂直灵敏度增强</td><td>${p.vert.toFixed(2)}</td></tr>
+            <tr><td>瞄准灵敏度</td><td>${p.aim}</td></tr>
+            <tr><td>开火镜头灵敏度</td><td>${p.fire}</td></tr>
+            <tr><td>红点/全息/侧瞄</td><td>${p.scope1x}</td></tr>
+            <tr><td>2倍镜</td><td>${p.scope2x}</td></tr>
+            <tr><td>3倍镜</td><td>${p.scope3x}</td></tr>
+            <tr><td>4倍镜</td><td>${p.scope4x}</td></tr>
+            <tr><td>6倍镜</td><td>${p.scope6x}</td></tr>
+            <tr><td>8倍镜</td><td>${p.scope8x}</td></tr>
+            <tr><td>15倍镜</td><td>${p.scope15x}</td></tr>
+            <tr><td>备注</td><td>${p.note}</td></tr>
+        </table>
+    `;
+    detailEl.style.display = "block";
+}
+
+function showSummary(type){
+    const data = type === "pro" ? proPlayers : streamers;
+    const detailEl = document.getElementById(type === "pro" ? "proDetail" : "streamerDetail");
+    const summaryEl = document.getElementById(type === "pro" ? "proSummary" : "streamerSummary");
+    detailEl.style.display = "none";
+    let rows = data.map(p => {
+        const hl = isHighlight(p);
+        return `<tr class="${hl ? 'highlight-row' : ''}">
+            <td>${p.name}${hl ? ' ⭐' : ''}</td>
+            <td>${p.dpi}</td><td>${p.sens}</td><td>${p.vert.toFixed(2)}</td>
+            <td>${p.aim}</td><td>${p.fire}</td>
+            <td>${p.scope1x}</td><td>${p.scope2x}</td><td>${p.scope3x}</td>
+            <td>${p.scope4x}</td><td>${p.scope6x}</td><td>${p.scope8x}</td><td>${p.scope15x}</td>
+            <td>${p.note}</td>
+        </tr>`;
+    }).join("");
+    summaryEl.innerHTML = `
+        <table>
+            <thead><tr>
+                <th>名字</th><th>DPI</th><th>常规</th><th>垂直</th><th>瞄准</th><th>开火</th>
+                <th>红点</th><th>2x</th><th>3x</th><th>4x</th><th>6x</th><th>8x</th><th>15x</th><th>备注</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>
+    `;
+    summaryEl.style.display = "block";
+}
+
+const proModal = document.getElementById('proModal');
+document.getElementById('refBtn').onclick = () => {
+    document.getElementById('proDetail').style.display = "none";
+    document.getElementById('proSummary').style.display = "none";
+    renderNameList(document.getElementById('proNameList'), proPlayers, "pro");
+    proModal.classList.add('show');
+};
+document.getElementById('modalClose').onclick = () => { proModal.classList.remove('show'); };
+proModal.addEventListener('click', (e) => {
+    if(e.target === proModal) proModal.classList.remove('show');
+});
+
+// ============ 主播灵敏度参考 ============
+const streamers = [
+    { name: "Pio（韩，前职业转主播）", dpi: 400, sens: 45, vert: 0.85, aim: 41, fire: 36, scope1x: 36, scope2x: 39, scope3x: 36, scope4x: 36, scope6x: 36, scope8x: 36, scope15x: 36, note: "韩国高人气PUBG内容创作者" },
+    { name: "左梓轩小叮当(XDD)", dpi: 800, sens: 41, vert: 1.15, aim: 38, fire: 45, scope1x: 23, scope2x: 21, scope3x: 19, scope4x: 17, scope6x: 14, scope8x: 12, scope15x: 10, note: "国内顶流，手腕流打法" },
+    { name: "托马斯CzH", dpi: 800, sens: 23, vert: 0.92, aim: 21, fire: 25, scope1x: 13, scope2x: 12, scope3x: 11, scope4x: 10, scope6x: 8, scope8x: 7, scope15x: 6, note: "国内老牌，低敏手臂流" },
+    { name: "图拉夫", dpi: 800, sens: 28, vert: 0.98, aim: 26, fire: 31, scope1x: 15, scope2x: 14, scope3x: 13, scope4x: 12, scope6x: 10, scope8x: 8, scope15x: 7, note: "早期国内头部技术主播" },
+    { name: "蓝战非", dpi: 800, sens: 34, vert: 1.02, aim: 31, fire: 37, scope1x: 19, scope2x: 17, scope3x: 16, scope4x: 14, scope6x: 12, scope8x: 10, scope15x: 8, note: "国内高人气娱乐技术主播" },
+    { name: "少囧", dpi: 800, sens: 30, vert: 1.00, aim: 27, fire: 33, scope1x: 17, scope2x: 15, scope3x: 14, scope4x: 12, scope6x: 10, scope8x: 9, scope15x: 7, note: "国内老一批PUBG大主播" },
+    { name: "Shroud", dpi: 450, sens: 56, vert: 1.00, aim: 50, fire: 62, scope1x: 31, scope2x: 28, scope3x: 25, scope4x: 22, scope6x: 18, scope8x: 15, scope15x: 12, note: "Twitch顶流，前CS职业选手" },
+    { name: "chocoTaco", dpi: 800, sens: 25, vert: 1.00, aim: 23, fire: 28, scope1x: 14, scope2x: 13, scope3x: 12, scope4x: 11, scope6x: 9, scope8x: 8, scope15x: 7, note: "Twitch头部，手臂流" },
+    { name: "DrDisRespect", dpi: 400, sens: 55, vert: 1.05, aim: 50, fire: 60, scope1x: 30, scope2x: 27, scope3x: 25, scope4x: 22, scope6x: 18, scope8x: 15, scope15x: 12, note: "海外现象级娱乐技术主播" },
+    { name: "Ninja", dpi: 800, sens: 36, vert: 0.90, aim: 33, fire: 40, scope1x: 20, scope2x: 18, scope3x: 17, scope4x: 15, scope6x: 12, scope8x: 10, scope15x: 8, note: "海外超级流量游戏主播" },
+    { name: "M1ME", dpi: 800, sens: 33, vert: 1.00, aim: 30, fire: 36, scope1x: 18, scope2x: 16, scope3x: 15, scope4x: 13, scope6x: 11, scope8x: 9, scope15x: 7, note: "Twitch技术向PUBG主播" }
+];
+
+const streamerModal = document.getElementById('streamerModal');
+document.getElementById('streamerBtn').onclick = () => {
+    document.getElementById('streamerDetail').style.display = "none";
+    document.getElementById('streamerSummary').style.display = "none";
+    renderNameList(document.getElementById('streamerNameList'), streamers, "streamer");
+    streamerModal.classList.add('show');
+};
+document.getElementById('streamerModalClose').onclick = () => { streamerModal.classList.remove('show'); };
+streamerModal.addEventListener('click', (e) => {
+    if(e.target === streamerModal) streamerModal.classList.remove('show');
+});
+
+// 按 ESC 关闭所有模态框
+document.addEventListener('keydown', (e) => {
+    if(e.key === "Escape"){
+        proModal.classList.remove('show');
+        streamerModal.classList.remove('show');
+        historyModal.classList.remove('show');
+    }
+});
+
+// ============ 测试②：主观追踪测试 ============
+const trackCanvas = document.getElementById('trackCanvas');
+const trackCtx = trackCanvas.getContext('2d');
+let trackRunning = false;
+let trackTargetX = 0, trackTargetY = 0;
+let trackVx = 0, trackVy = 0;
+let trackOffsetList = [];
+let trackAnimId = null;
+let trackMouseX = 0, trackMouseY = 0;
+let trackTimerId = null;
+
+function resizeTrackCanvas(){
+    trackCanvas.width = trackCanvas.clientWidth;
+    trackCanvas.height = trackCanvas.clientHeight;
+    drawTrackBg();
+}
+function drawTrackBg(){
+    trackCtx.fillStyle="#161616";
+    trackCtx.fillRect(0,0,trackCanvas.width,trackCanvas.height);
+}
+function drawTrackFrame(){
+    drawTrackBg();
+    trackCtx.fillStyle="#ef4444";
+    trackCtx.beginPath();
+    trackCtx.arc(trackTargetX, trackTargetY, 12, 0, Math.PI*2);
+    trackCtx.fill();
+    trackCtx.strokeStyle="#F5A623";
+    trackCtx.lineWidth=2;
+    trackCtx.beginPath();
+    trackCtx.arc(trackMouseX, trackMouseY, 16, 0, Math.PI*2);
+    trackCtx.stroke();
+}
+
+document.getElementById('trackStart').onclick = ()=>{
+    if(trackRunning) return;
+    trackOffsetList = [];
+    drawTrackBg();
+    cancelAnimationFrame(trackAnimId);
+    if(trackTimerId) clearInterval(trackTimerId);
+    // 3秒倒计时
+    let countdown = 3;
+    const statusEl = document.getElementById('trackStatus');
+    statusEl.className = "badge-idle";
+    statusEl.innerText = "准备中 3";
+    const drawCountdown = ()=>{
+        drawTrackBg();
+        trackCtx.fillStyle = "#F5A623";
+        trackCtx.font = "bold 26px system-ui, sans-serif";
+        trackCtx.textAlign = "center";
+        trackCtx.textBaseline = "middle";
+        trackCtx.fillText("请将鼠标放置在画布左侧", trackCanvas.width/2, trackCanvas.height/2 - 45);
+        trackCtx.font = "bold 72px system-ui, sans-serif";
+        trackCtx.fillStyle = "#ef4444";
+        trackCtx.fillText(countdown > 0 ? countdown : "GO!", trackCanvas.width/2, trackCanvas.height/2 + 15);
+    };
+    drawCountdown();
+    const cdTimer = setInterval(()=>{
+        countdown--;
+        if(countdown < 0){
+            clearInterval(cdTimer);
+            startTrackTest();
+        } else {
+            statusEl.innerText = "准备中 " + countdown;
+            drawCountdown();
+        }
+    }, 1000);
+};
+
+function startTrackTest(){
+    const statusEl = document.getElementById('trackStatus');
+    statusEl.className = "";
+    statusEl.innerText = "测试中 10s";
+    trackRunning = true;
+    // 红点随机位置生成
+    trackTargetX = 60 + Math.random() * (trackCanvas.width - 120);
+    trackTargetY = 60 + Math.random() * (trackCanvas.height - 120);
+    // 随机初始速度方向（速度适中，不要太快）
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 1.5;
+    trackVx = Math.cos(angle) * speed;
+    trackVy = Math.sin(angle) * speed;
+    trackLoop();
+    // 10秒后自动结束
+    let remain = 10;
+    const tickTimer = setInterval(()=>{
+        remain--;
+        if(remain <= 0){
+            clearInterval(tickTimer);
+            endTrackTest();
+        } else {
+            statusEl.innerText = "测试中 " + remain + "s";
+        }
+    }, 1000);
+    trackTimerId = tickTimer;
+}
+
+function trackLoop(){
+    if(!trackRunning) return;
+    // 随机轨迹：偶尔改变方向和速度
+    if(Math.random() < 0.03){
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1.0 + Math.random() * 1.5;
+        trackVx = Math.cos(angle) * speed;
+        trackVy = Math.sin(angle) * speed;
+    }
+    trackTargetX += trackVx;
+    trackTargetY += trackVy;
+    // 边界反弹
+    if(trackTargetX < 12){ trackTargetX = 12; trackVx = Math.abs(trackVx); }
+    if(trackTargetX > trackCanvas.width - 12){ trackTargetX = trackCanvas.width - 12; trackVx = -Math.abs(trackVx); }
+    if(trackTargetY < 12){ trackTargetY = 12; trackVy = Math.abs(trackVy); }
+    if(trackTargetY > trackCanvas.height - 12){ trackTargetY = trackCanvas.height - 12; trackVy = -Math.abs(trackVy); }
+    drawTrackFrame();
+    const offset = Math.hypot(trackMouseX - trackTargetX, trackMouseY - trackTargetY);
+    trackOffsetList.push(offset);
+    trackAnimId = requestAnimationFrame(trackLoop);
+}
+
+function endTrackTest(){
+    trackRunning = false;
+    cancelAnimationFrame(trackAnimId);
+    if(trackTimerId) clearInterval(trackTimerId);
+    if(trackOffsetList.length > 0){
+        const avg = trackOffsetList.reduce((s,v)=>s+v,0)/trackOffsetList.length;
+        document.getElementById('trackOffset').innerText = avg.toFixed(2);
+    }
+    const s = document.getElementById('trackStatus');
+    s.className = "badge-idle";
+    s.innerText = "测试完成";
+}
+
+document.getElementById('trackReset').onclick = ()=>{
+    trackRunning = false;
+    cancelAnimationFrame(trackAnimId);
+    if(trackTimerId) clearInterval(trackTimerId);
+    trackOffsetList = [];
+    drawTrackBg();
+    document.getElementById('trackOffset').innerText = "--";
+    const s = document.getElementById('trackStatus');
+    s.className = "badge-idle";
+    s.innerText = "未开始";
+};
+
+trackCanvas.addEventListener('mousemove',(e)=>{
+    const rect = trackCanvas.getBoundingClientRect();
+    trackMouseX = e.clientX - rect.left;
+    trackMouseY = e.clientY - rect.top;
+});
+
+window.addEventListener('resize', ()=>{ resizeTrackCanvas(); });
+resizeTrackCanvas();
+
+// ============ 测试③：定位急停测试 ============
+const stopCanvas = document.getElementById('stopCanvas');
+const stopCtx = stopCanvas.getContext('2d');
+let stopRunning = false;
+let stopTargetX = 0, stopTargetY = 0;
+let stopStartTime = 0;
+let stopCount = 0;
+let stopTimeList = [];
+
+function resizeStopCanvas(){
+    stopCanvas.width = stopCanvas.clientWidth;
+    stopCanvas.height = stopCanvas.clientHeight;
+    drawStopBg();
+}
+function drawStopBg(){
+    stopCtx.fillStyle="#161616";
+    stopCtx.fillRect(0,0,stopCanvas.width,stopCanvas.height);
+}
+function nextStopTarget(){
+    if(stopCount >= 10){
+        stopRunning = false;
+        const s = document.getElementById('stopStatus');
+        s.className = "badge-idle";
+        s.innerText = "测试完成";
+        if(stopTimeList.length > 0){
+            const avg = stopTimeList.reduce((a,b)=>a+b,0)/stopTimeList.length;
+            document.getElementById('stopAvgTime').innerText = avg.toFixed(0);
+        }
+        return;
+    }
+    stopTargetX = 50 + Math.random() * (stopCanvas.width - 100);
+    stopTargetY = 50 + Math.random() * (stopCanvas.height - 100);
+    drawStopBg();
+    stopCtx.fillStyle="#ef4444";
+    stopCtx.beginPath();
+    stopCtx.arc(stopTargetX, stopTargetY, 14, 0, Math.PI*2);
+    stopCtx.fill();
+    stopStartTime = performance.now();
+}
+
+document.getElementById('stopStart').onclick = ()=>{
+    stopRunning = true;
+    stopCount = 0;
+    stopTimeList = [];
+    document.getElementById('stopCount').innerText = "0 / 10";
+    document.getElementById('stopAvgTime').innerText = "--";
+    const s = document.getElementById('stopStatus');
+    s.className = "";
+    s.innerText = "测试中";
+    drawStopBg();
+    nextStopTarget();
+};
+document.getElementById('stopReset').onclick = ()=>{
+    stopRunning = false;
+    stopCount = 0;
+    stopTimeList = [];
+    drawStopBg();
+    document.getElementById('stopCount').innerText = "0 / 10";
+    document.getElementById('stopAvgTime').innerText = "--";
+    const s = document.getElementById('stopStatus');
+    s.className = "badge-idle";
+    s.innerText = "未开始";
+};
+stopCanvas.addEventListener('mousedown',(e)=>{
+    if(!stopRunning) return;
+    const rect = stopCanvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const my = e.clientY - rect.top;
+    const dist = Math.hypot(mx - stopTargetX, my - stopTargetY);
+    if(dist < 25){
+        stopCount++;
+        stopTimeList.push(performance.now() - stopStartTime);
+        document.getElementById('stopCount').innerText = stopCount + " / 10";
+        nextStopTarget();
+    }
+});
+
+// ============ 测试④：缩放模拟瞄准测试 ============
+const zoomCanvas = document.getElementById('zoomCanvas');
+const zoomCtx = zoomCanvas.getContext('2d');
+let zoomRunning = false;
+let zoomLevelIdx = 0;
+const zoomLevels = [1, 2, 3, 4, 6];
+let zoomTargetX = 0, zoomTargetY = 0;
+let zoomOffsetList = [];
+let zoomMouseX = 0, zoomMouseY = 0;
+
+function resizeZoomCanvas(){
+    zoomCanvas.width = zoomCanvas.clientWidth;
+    zoomCanvas.height = zoomCanvas.clientHeight;
+    drawZoomBg();
+}
+function drawZoomBg(){
+    zoomCtx.fillStyle="#161616";
+    zoomCtx.fillRect(0,0,zoomCanvas.width,zoomCanvas.height);
+}
+function drawZoomFrame(){
+    drawZoomBg();
+    const zoom = zoomLevels[zoomLevelIdx] || 1;
+    const radius = Math.max(4, 16 / zoom);
+    zoomCtx.fillStyle="#ef4444";
+    zoomCtx.beginPath();
+    zoomCtx.arc(zoomTargetX, zoomTargetY, radius, 0, Math.PI*2);
+    zoomCtx.fill();
+    zoomCtx.strokeStyle="#F5A623";
+    zoomCtx.lineWidth=2;
+    zoomCtx.beginPath();
+    zoomCtx.arc(zoomMouseX, zoomMouseY, 16, 0, Math.PI*2);
+    zoomCtx.stroke();
+}
+function nextZoomTarget(){
+    if(zoomLevelIdx >= zoomLevels.length){
+        zoomRunning = false;
+        const s = document.getElementById('zoomStatus');
+        s.className = "badge-idle";
+        s.innerText = "测试完成";
+        if(zoomOffsetList.length > 0){
+            const avg = zoomOffsetList.reduce((a,b)=>a+b,0)/zoomOffsetList.length;
+            document.getElementById('zoomOffset').innerText = avg.toFixed(2);
+        }
+        return;
+    }
+    const zoom = zoomLevels[zoomLevelIdx];
+    document.getElementById('zoomLevel').innerText = zoom + "x";
+    const margin = Math.min(40 * zoom, zoomCanvas.width / 3);
+    zoomTargetX = margin + Math.random() * Math.max(1, zoomCanvas.width - margin * 2);
+    zoomTargetY = margin + Math.random() * Math.max(1, zoomCanvas.height - margin * 2);
+    drawZoomFrame();
+}
+
+document.getElementById('zoomStart').onclick = ()=>{
+    zoomRunning = true;
+    zoomLevelIdx = 0;
+    zoomOffsetList = [];
+    document.getElementById('zoomOffset').innerText = "--";
+    const s = document.getElementById('zoomStatus');
+    s.className = "";
+    s.innerText = "测试中";
+    drawZoomBg();
+    nextZoomTarget();
+};
+document.getElementById('zoomReset').onclick = ()=>{
+    zoomRunning = false;
+    zoomLevelIdx = 0;
+    zoomOffsetList = [];
+    drawZoomBg();
+    document.getElementById('zoomLevel').innerText = "1x";
+    document.getElementById('zoomOffset').innerText = "--";
+    const s = document.getElementById('zoomStatus');
+    s.className = "badge-idle";
+    s.innerText = "未开始";
+};
+zoomCanvas.addEventListener('mousemove',(e)=>{
+    const rect = zoomCanvas.getBoundingClientRect();
+    zoomMouseX = e.clientX - rect.left;
+    zoomMouseY = e.clientY - rect.top;
+    if(!zoomRunning) return;
+    zoomOffsetList.push(Math.hypot(zoomMouseX - zoomTargetX, zoomMouseY - zoomTargetY));
+    drawZoomFrame();
+});
+zoomCanvas.addEventListener('mousedown',()=>{
+    if(!zoomRunning) return;
+    zoomLevelIdx++;
+    nextZoomTarget();
+});
+
+window.addEventListener('resize', ()=>{
+    resizeStopCanvas();
+    resizeZoomCanvas();
+});
+resizeStopCanvas();
+resizeZoomCanvas();
+</script>
+</body>
+</html>

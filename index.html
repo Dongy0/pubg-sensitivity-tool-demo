@@ -983,6 +983,61 @@
             padding:30px 0;
             font-size:14px;
         }
+
+        /* ===== 向导式步骤条 ===== */
+        .wizard-steps{
+            display:flex;
+            align-items:center;
+            background:#141414;
+            border:1px solid #2a2a2a;
+            border-radius:10px;
+            padding:10px 14px;
+            margin:18px 0 4px;
+        }
+        .wstep{
+            display:flex;
+            align-items:center;
+            gap:8px;
+            cursor:pointer;
+            padding:4px 8px;
+            border-radius:8px;
+            flex-shrink:0;
+        }
+        .wstep:hover .wstep-label{ color:#f0f0f0; }
+        .wstep-dot{
+            width:28px;
+            height:28px;
+            border-radius:50%;
+            border:2px solid #444;
+            color:#888;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            font-weight:700;
+            font-size:12px;
+            background:#161616;
+            flex-shrink:0;
+        }
+        .wstep-label{ font-size:13px; color:#888; white-space:nowrap; }
+        .wstep-line{ flex:1; height:2px; background:#333; min-width:12px; }
+        .wstep.current .wstep-dot{ border-color:#F5A623; color:#F5A623; background:rgba(245,166,35,0.08); }
+        .wstep.current .wstep-label{ color:#f5f5f5; font-weight:600; }
+        .wstep.done .wstep-dot{ border-color:#7fd87f; color:#7fd87f; background:rgba(127,216,127,0.08); }
+        .wstep.done .wstep-label{ color:#9a9a9a; }
+        .wstep-page{ display:none; }
+        .wstep-page.show{ display:block; }
+        .wizard-nav{
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:10px;
+            margin:20px 0 8px;
+        }
+        .wizard-nav #wStepInfo{ color:#888; font-size:13px; }
+        .wizard-nav button:disabled{ opacity:0.45; cursor:not-allowed; }
+        @media (max-width: 720px){
+            .wstep-label{ display:none; }
+        }
     </style>
 </head>
 <body>
@@ -1013,7 +1068,24 @@
     </header>
 
     <div id="mainView">
+    <!-- 向导步骤条 -->
+    <div class="wizard-steps" id="wizardSteps">
+        <div class="wstep current" data-step="1" onclick="showStep(1)"><span class="wstep-dot">①</span><span class="wstep-label">360° 测量</span></div>
+        <div class="wstep-line"></div>
+        <div class="wstep" data-step="2" onclick="showStep(2)"><span class="wstep-dot">②</span><span class="wstep-label">追踪跟枪</span></div>
+        <div class="wstep-line"></div>
+        <div class="wstep" data-step="3" onclick="showStep(3)"><span class="wstep-dot">③</span><span class="wstep-label">急停定位</span></div>
+        <div class="wstep-line"></div>
+        <div class="wstep" data-step="4" onclick="showStep(4)"><span class="wstep-dot">④</span><span class="wstep-label">倍镜缩放</span></div>
+        <div class="wstep-line"></div>
+        <div class="wstep" data-step="5" onclick="showStep(5)"><span class="wstep-dot">🖥️</span><span class="wstep-label">分辨率转换</span></div>
+        <div class="wstep-line"></div>
+        <div class="wstep" data-step="6" onclick="showStep(6)"><span class="wstep-dot">🎯</span><span class="wstep-label">推荐结果</span></div>
+    </div>
+
+    <div class="wstep-page show" data-page="1">
     <div class="panel">
+        <h3>① 360° 转身测试（基础测量）</h3>
         <p>操作说明：在下方画布，<strong>按住鼠标左键</strong>，横向完整滑动画布2‑3次，程序记录你的鼠标物理移动习惯。</p >
         <p class="test-purpose" style="color:#888;font-size:12px;margin-top:6px;border-left:2px solid #F5A623;padding-left:8px;">
             💡 为什么测：测量你的实际鼠标移动幅度<br>
@@ -1030,7 +1102,9 @@
     </div>
 
     <canvas id="testCanvas"></canvas>
+    </div><!-- /wstep-page 1 -->
 
+    <div class="wstep-page" data-page="2">
     <!-- 测试2：主观追踪测试 -->
     <div class="panel">
         <h3>② 主观追踪测试（模拟开镜跟枪）</h3>
@@ -1045,7 +1119,9 @@
         <span id="trackStatus" class="badge-idle">未开始</span>
         <p class="result-text">平均瞄准偏移：<span id="trackOffset">--</span> px</p >
     </div>
+    </div><!-- /wstep-page 2 -->
 
+    <div class="wstep-page" data-page="3">
     <!-- 测试3：定位急停测试 -->
     <div class="panel">
         <h3>③ 定位急停测试（模拟近战急停定位）</h3>
@@ -1061,7 +1137,9 @@
         <p class="result-text">平均定位耗时：<span id="stopAvgTime">--</span> ms</p >
         <p class="result-text">命中次数：<span id="stopCount">0</span> / 10</p >
     </div>
+    </div><!-- /wstep-page 3 -->
 
+    <div class="wstep-page" data-page="4">
     <!-- 测试4：缩放模拟瞄准测试 -->
     <div class="panel">
         <h3>④ 缩放模拟瞄准测试（模拟倍镜精细瞄准）</h3>
@@ -1078,7 +1156,9 @@
         <p class="result-text">平均微小偏移：<span id="zoomOffset">--</span> px</p >
         <p class="result-text">命中情况：<span id="zoomHits">--</span></p >
     </div>
+    </div><!-- /wstep-page 4 -->
 
+    <div class="wstep-page" data-page="5">
     <!-- 🖥️ 分辨率/宽高比转换器 -->
     <div class="res-converter">
         <h3>🖥️ 分辨率 / 宽高比转换器</h3>
@@ -1168,7 +1248,9 @@
             <div class="res-change" id="resChangeBox"></div>
         </div>
     </div>
+    </div><!-- /wstep-page 5 -->
 
+    <div class="wstep-page" data-page="6">
     <!-- 🎯 测试结果推荐大卡片 -->
     <div class="result-card" id="resultCard" style="opacity:0.6;pointer-events:none;">
         <div class="result-card-title">
@@ -1183,7 +1265,7 @@
                 <span class="cm360-big" id="cm360">--</span>
                 <span class="cm360-unit">cm / 360°</span>
             </div>
-            <div class="cm360-label">鼠标旋转一整圈需要移动的距离</div>
+            <div class="cm360-label">鼠标旋转一整圈的估算距离 <span style="color:#888;font-size:12px;">（浏览器环境估算，实际以游戏内为准）</span></div>
             <div id="sensTypeBadge" style="display:none;" class="sens-type-badge sens-mid">中灵敏度</div>
         </div>
 
@@ -1221,6 +1303,18 @@
         <div class="recommend-box" id="recommendBox" style="display:none;">
             <span class="tag">个性化建议</span>
             <span id="recommendText">完成测试后显示微调建议</span>
+        </div>
+
+        <!-- 推荐置信度 + 依据（V2 综合模型） -->
+        <div class="recommend-box" id="confBox" style="display:none;">
+            <span class="tag">推荐置信度</span>
+            <div style="display:flex;align-items:center;gap:10px;margin:6px 0;">
+                <div style="flex:1;height:10px;background:#222;border-radius:6px;overflow:hidden;">
+                    <div id="confBar" style="height:100%;width:50%;background:#b45309;border-radius:6px;transition:width .4s;"></div>
+                </div>
+                <b id="confPct" style="color:#F5A623;min-width:44px;text-align:right;">50%</b>
+            </div>
+            <div id="confReasons" style="font-size:13px;color:#bbb;line-height:1.7;"></div>
         </div>
 
         <!-- FOV 参考 -->
@@ -1266,6 +1360,14 @@
             <button id="refBtn" class="secondary">🏆 职业选手</button>
             <button id="streamerBtn" class="secondary">🎥 主播参考</button>
         </div>
+    </div>
+    </div><!-- /wstep-page 6 -->
+
+    <!-- 向导底部导航 -->
+    <div class="wizard-nav">
+        <button id="wPrev" class="secondary" onclick="wPrevStep()" disabled>← 上一步</button>
+        <span id="wStepInfo">第 1 / 5 步</span>
+        <button id="wNext" onclick="wNextStep()">下一步 →</button>
     </div>
 
     <!-- 职业选手灵敏度参考模态框 -->
@@ -1320,30 +1422,46 @@ let totalMouseDeltaX = 0;
 // 分段存储轨迹：每个元素是一段（一次按住滑动的点集合），段之间不连线
 let trajectorySegments = [];
 
-// 适配画布真实尺寸
+// ===== Canvas 高清适配（DPR）=====
+// 物理像素 = CSS 尺寸 × devicePixelRatio；绘制坐标系保持 CSS 像素（与鼠标坐标一致，无需换算）
+function fitCanvasDPR(c){
+    const dpr = window.devicePixelRatio || 1;
+    const w = c.clientWidth, h = c.clientHeight;
+    if(w === 0 || h === 0) return false; // 画布不可见（向导未激活页），跳过
+    const pw = Math.round(w * dpr), ph = Math.round(h * dpr);
+    if(c.width !== pw || c.height !== ph){
+        c.width = pw;
+        c.height = ph;
+    }
+    c.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+    return true;
+}
+
+// 适配画布真实尺寸（含 DPR 高清适配）
 function resizeCanvas(){
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
+    fitCanvasDPR(canvas);
     drawHint();
 }
 resizeCanvas();
 
-// PUBG经验换算参考（作品集文档写明：经验拟合，非官方算法）
-function calcPUBG(cmPer360){
-    let sens;
-    if(cmPer360 < 4) sens = 43;
-    else if(cmPer360 < 7) sens = 35;
-    else if(cmPer360 < 10) sens = 29;
-    else if(cmPer360 < 14) sens = 25;
-    else if(cmPer360 < 18) sens = 21;
-    else if(cmPer360 < 24) sens = 18;
-    else sens = 15;
+// ===== V2 推荐算法 =====
+// 连续基础灵敏度：cm/360 越小 → 灵敏度越高（线性映射，避免阶梯跳变）
+function calcBaseSens(cm){
+    const minCm = 4, maxCm = 30, maxSens = 43, minSens = 15;
+    const t = Math.max(0, Math.min(1, (cm - minCm) / (maxCm - minCm)));
+    return Math.round(maxSens - t * (maxSens - minSens));
+}
+// 连续垂直灵敏度：低 cm（高灵敏/手腕）垂直补偿更大
+function calcBaseVert(cm){
+    const minCm = 4, maxCm = 30;
+    const t = Math.max(0, Math.min(1, (cm - minCm) / (maxCm - minCm)));
+    return (1.15 - t * 0.25); // 1.15 → 0.90
+}
 
-    let vert;
-    if(cmPer360 < 4) vert = 1.15;
-    else if(cmPer360 < 10) vert = 1.05;
-    else if(cmPer360 < 18) vert = 1.00;
-    else vert = 0.90;
+// PUBG经验换算参考（经验拟合，非官方算法）
+function calcPUBG(cmPer360){
+    const sens = calcBaseSens(cmPer360);
+    const vert = calcBaseVert(cmPer360);
 
     // 瞄准灵敏度 = 常规 × 0.85
     const aim = Math.round(sens * 0.85);
@@ -1366,16 +1484,118 @@ function calcPUBG(cmPer360){
     };
 }
 
-// 判断灵敏度类型
+// 判断灵敏度类型：cm/360 越小 = 灵敏度越高（手腕流）；越大 = 越低（手臂流）
 function getSensType(cmPer360){
-    if(cmPer360 < 7) return { type: 'low', label: '🟢 低灵敏度（手腕流）' };
+    if(cmPer360 < 7) return { type: 'high', label: '🔴 高灵敏度（手腕流）' };
     if(cmPer360 < 18) return { type: 'mid', label: '🟡 中灵敏度（均衡型）' };
-    return { type: 'high', label: '🔴 高灵敏度（手臂流）' };
+    return { type: 'low', label: '🟢 低灵敏度（手臂流）' };
 }
 
 function getDPI(){
     const v = parseInt(dpiInput.value, 10);
     return (v > 0) ? v : 800;
+}
+
+// ===== V2 综合评分模型：四项测试指标 → 可解释的灵敏度修正 =====
+// 各测试完成后把指标写入 testMetrics，再调用 applyV2Model()
+const testMetrics = {
+    cm: null,        // 测试① cm/360 估算
+    track: null,     // 测试② 平均跟枪偏移 px
+    stopMs: null,    // 测试③ 平均急停定位耗时 ms
+    stopHits: null,  // 测试③ 命中数
+    zoom: {},        // 测试④ {倍率: 平均偏移 px}
+    zoomAvg: null
+};
+
+function applyV2Model(){
+    if(typeof renderWizardSteps === 'function') renderWizardSteps(); // 同步向导步骤完成状态
+    if(testMetrics.cm == null) return; // 需要测试①作为基准
+    const cm = testMetrics.cm;
+    const base = calcPUBG(cm);
+    const reasons = [];
+
+    let aim = base.aim, fire = base.fire;
+    const mult = { s1x:0.55, s2x:0.45, s3x:0.38, s4x:0.32, s6x:0.26, s8x:0.20 };
+    const scopes = {
+        s1x: base.scope1x, s2x: base.scope2x, s3x: base.scope3x,
+        s4x: base.scope4x, s6x: base.scope6x, s8x: base.scope8x
+    };
+
+    let confidence = 50; // 仅测试①时的基准置信度
+
+    // ② 追踪测试 → 修正 ADS（瞄准灵敏度）。偏移越大越不稳 → 降低 ADS
+    if(testMetrics.track != null){
+        confidence += 15;
+        const t = testMetrics.track;
+        let coef, note;
+        if(t < 15){ coef = 1.00; note = "跟枪偏移小（" + t.toFixed(0) + "px），控制稳定，ADS 保持基准"; }
+        else if(t < 30){ coef = 0.95; note = "跟枪偏移中等（" + t.toFixed(0) + "px），ADS 下调 5%"; }
+        else if(t < 50){ coef = 0.90; note = "跟枪偏移偏大（" + t.toFixed(0) + "px），ADS 下调 10% 抑制抖动"; }
+        else { coef = 0.85; note = "跟枪偏移大（" + t.toFixed(0) + "px），ADS 下调 15% 减少过冲"; }
+        aim = Math.round(base.sens * 0.85 * coef);
+        reasons.push({ icon: "🎯", text: note });
+    }
+
+    // ③ 急停测试 → 修正开火镜头灵敏度。定位越快越能驾驭高灵敏
+    if(testMetrics.stopMs != null){
+        confidence += 15;
+        const ms = testMetrics.stopMs;
+        let coef, note;
+        if(ms < 450){ coef = 1.10; note = "急停定位快（" + ms.toFixed(0) + "ms），开火灵敏度上调 10%"; }
+        else if(ms < 650){ coef = 1.05; note = "急停定位良好（" + ms.toFixed(0) + "ms），开火灵敏度上调 5%"; }
+        else if(ms < 900){ coef = 1.00; note = "急停定位中等（" + ms.toFixed(0) + "ms），开火灵敏度保持"; }
+        else { coef = 0.95; note = "急停定位偏慢（" + ms.toFixed(0) + "ms），开火灵敏度下调 5% 减少过冲"; }
+        fire = Math.round(base.sens * 0.95 * coef);
+        reasons.push({ icon: "⚡", text: note });
+    }
+
+    // ④ 缩放测试 → 分档修正倍镜灵敏度。某倍率偏移大 → 单独降低该档
+    const zoomLvToScope = { 1:"s1x", 2:"s2x", 3:"s3x", 4:"s4x", 6:"s6x" };
+    if(Object.keys(testMetrics.zoom).length > 0){
+        confidence += 20;
+        for(const lv of Object.keys(testMetrics.zoom)){
+            const off = testMetrics.zoom[lv];
+            const key = zoomLvToScope[lv];
+            if(!key) continue;
+            let coef = off < 20 ? 1.00 : (off < 40 ? 0.92 : 0.85);
+            scopes[key] = Math.round(base.sens * mult[key] * coef);
+            if(lv === "6") scopes.s8x = Math.round(base.sens * mult.s8x * coef); // 8x 跟随 6x
+        }
+        const highOff = testMetrics.zoom[6] != null ? testMetrics.zoom[6] : testMetrics.zoom[4];
+        if(highOff != null){
+            reasons.push({ icon: "🔭", text: highOff < 20 ? "高倍镜微调稳定，倍镜灵敏度保持基准"
+                : (highOff < 40 ? "高倍镜略有过冲，4x/6x/8x 下调约 8%" : "高倍镜过冲明显，4x/6x/8x 下调 15%") });
+        }
+    }
+
+    confidence = Math.min(95, confidence);
+
+    // 写入结果卡片
+    const set = (id, v) => { const el = document.getElementById(id); if(el) el.innerText = v; };
+    set('aimResult', aim);
+    set('fireResult', fire);
+    set('s1x', scopes.s1x); set('s2x', scopes.s2x); set('s3x', scopes.s3x);
+    set('s4x', scopes.s4x); set('s6x', scopes.s6x); set('s8x', scopes.s8x);
+
+    renderConfidence(confidence, reasons);
+    window.__lastV2 = { base, aim, fire, scopes, confidence, reasons, cm };
+}
+
+function renderConfidence(pct, reasons){
+    const bar = document.getElementById('confBar');
+    const pctEl = document.getElementById('confPct');
+    const list = document.getElementById('confReasons');
+    if(!bar || !pctEl || !list) return;
+    bar.style.width = pct + "%";
+    pctEl.innerText = pct + "%";
+    bar.style.background = pct >= 80 ? "#2a8a4a" : (pct >= 65 ? "#F5A623" : "#b45309");
+    let html = "";
+    if(reasons.length === 0){
+        html = "<div style='color:#888;'>仅完成基础校准。完成 ②追踪 / ③急停 / ④缩放 测试可提升置信度并细化推荐。</div>";
+    } else {
+        reasons.forEach(r => { html += "<div>"+ r.icon + " " + r.text + "</div>"; });
+    }
+    list.innerHTML = html;
 }
 
 function updateStatusBadge(){
@@ -1394,7 +1614,7 @@ function updateStatusBadge(){
 function drawHint(){
     // 背景
     ctx.fillStyle = "#161616";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
     // 绘制轨迹（分段，段间不连线）
     ctx.strokeStyle = "#5b8db5";
@@ -1435,7 +1655,7 @@ function drawHint(){
         ctx.fillStyle = "#f0f0f0";
         ctx.font = "bold 16px sans-serif";
         ctx.textAlign = "right";
-        ctx.fillText("已移动: " + totalCm.toFixed(2) + " cm", canvas.width - 16, 28);
+        ctx.fillText("已移动: " + totalCm.toFixed(2) + " cm", canvas.clientWidth - 16, 28);
     }
 
     // 提示文字
@@ -1450,7 +1670,7 @@ function drawHint(){
     } else {
         hint = "继续滑动…松开鼠标可暂停";
     }
-    ctx.fillText(hint, canvas.width / 2, canvas.height / 2);
+    ctx.fillText(hint, canvas.clientWidth / 2, canvas.clientHeight / 2);
 }
 
 // ===== 当前设置 vs 推荐设置 =====
@@ -1677,6 +1897,16 @@ function resetResultCard(){
     document.getElementById('recommendBox').style.display = 'none';
     const fovBox0 = document.getElementById('fovBox');
     if(fovBox0) fovBox0.style.display = 'none';
+    const confBox0 = document.getElementById('confBox');
+    if(confBox0) confBox0.style.display = 'none';
+    // 重置 V2 综合模型指标
+    testMetrics.cm = null;
+    testMetrics.track = null;
+    testMetrics.stopMs = null;
+    testMetrics.stopHits = null;
+    testMetrics.zoom = {};
+    testMetrics.zoomAvg = null;
+    if(typeof renderWizardSteps === 'function') renderWizardSteps(); // 重置后取消步骤完成标记
 }
 
 // 鼠标按键状态：仅按住左键时记录
@@ -1701,9 +1931,9 @@ window.addEventListener('mouseup', () => {
 dpiInput.addEventListener('input', () => {
     if(totalMouseDeltaX > 0){
         updateResults();
-        // DPI 改变了基础 cm/360 与常规灵敏度，若已做过 ②③④ 测试，重新套用微调系数
-        if(typeof tryComprehensiveCalc === 'function'){
-            tryComprehensiveCalc();
+        // DPI 改变了基础 cm/360 与常规灵敏度，重新套用 V2 综合模型
+        if(typeof applyV2Model === 'function'){
+            applyV2Model();
         }
     }
     drawHint();
@@ -1767,6 +1997,12 @@ function updateResults(){
     // FOV 参考
     const fovBox = document.getElementById('fovBox');
     if(fovBox) fovBox.style.display = "block";
+
+    // V2：记录基准 cm/360（估算值），显示置信度面板并套用综合模型
+    testMetrics.cm = totalCm;
+    const confBox = document.getElementById('confBox');
+    if(confBox) confBox.style.display = "block";
+    applyV2Model();
 }
 
 canvas.addEventListener('mousemove', (e) => {
@@ -1870,18 +2106,28 @@ function formatTime(ts){
 document.getElementById('saveBtn').onclick=()=>{
     const sen = document.getElementById('sensResult').innerText;
     if(sen === "--" || !sen){ alert("请先完成测试再保存"); return; }
-    const cm = document.getElementById('cm360').innerText;
-    const ver = document.getElementById('vertResult').innerText;
+    const g = (id) => document.getElementById(id)?.innerText || "--";
     const dpi = getDPI();
     try {
         const arr = getHistory();
         arr.push({
             id: Date.now(),
             time: Date.now(),
-            cm360: cm,
+            dpi: dpi,
+            cm360: g('cm360'),
             sens: sen,
-            vert: ver,
-            dpi: dpi
+            vert: g('vertResult'),
+            aim: g('aimResult'),
+            fire: g('fireResult'),
+            s1x: g('s1x'), s2x: g('s2x'), s3x: g('s3x'),
+            s4x: g('s4x'), s6x: g('s6x'), s8x: g('s8x'),
+            // V2：完整测试指标
+            trackOffset: testMetrics.track != null ? Number(testMetrics.track.toFixed(1)) : null,
+            stopMs: testMetrics.stopMs != null ? Math.round(testMetrics.stopMs) : null,
+            stopHits: testMetrics.stopHits,
+            zoomAvg: testMetrics.zoomAvg != null ? Number(testMetrics.zoomAvg.toFixed(1)) : null,
+            zoomByLevel: Object.keys(testMetrics.zoom).length ? testMetrics.zoom : null,
+            confidence: window.__lastV2 ? window.__lastV2.confidence : null
         });
         saveHistory(arr);
         alert("参数已保存（共 " + arr.length + " 条记录）");
@@ -1903,12 +2149,18 @@ function renderHistoryList(){
     list.innerHTML = arr.map(item => `
         <div class="history-item">
             <div class="history-info">
-                <div class="history-time">${formatTime(item.time)}</div>
+                <div class="history-time">${formatTime(item.time)}${item.confidence != null ? ' · 置信度 <strong style="color:#F5A623;">'+item.confidence+'%</strong>' : ''}</div>
                 <div class="history-meta">
                     <span>DPI: <strong>${item.dpi}</strong></span>
                     <span>cm/360: <strong>${item.cm360}</strong></span>
                     <span>常规: <strong>${item.sens}</strong></span>
-                    <span>垂直: <strong>${item.vert}</strong></span>
+                    <span>ADS: <strong>${item.aim || '--'}</strong></span>
+                    <span>开火: <strong>${item.fire || '--'}</strong></span>
+                </div>
+                <div class="history-meta" style="color:#888;font-size:12px;margin-top:4px;">
+                    ${item.trackOffset != null ? '<span>跟枪偏移: <strong>'+item.trackOffset+'px</strong></span>' : ''}
+                    ${item.stopMs != null ? '<span>急停: <strong>'+item.stopMs+'ms</strong></span>' : ''}
+                    ${item.zoomAvg != null ? '<span>倍镜偏移: <strong>'+item.zoomAvg+'px</strong></span>' : ''}
                 </div>
             </div>
             <div class="history-btns">
@@ -1924,13 +2176,33 @@ function applyHistoryRecord(id){
     const arr = getHistory();
     const item = arr.find(r => r.id === id);
     if(!item) return;
-    document.getElementById('cm360').innerText = item.cm360;
-    document.getElementById('sensResult').innerText = item.sens;
-    document.getElementById('vertResult').innerText = item.vert;
+    const set = (k,v) => { const el = document.getElementById(k); if(el && v != null) el.innerText = v; };
+    set('cm360', item.cm360);
+    set('sensResult', item.sens);
+    set('vertResult', item.vert);
+    set('aimResult', item.aim);
+    set('fireResult', item.fire);
+    set('s1x', item.s1x); set('s2x', item.s2x); set('s3x', item.s3x);
+    set('s4x', item.s4x); set('s6x', item.s6x); set('s8x', item.s8x);
     if(item.dpi){ dpiInput.value = item.dpi; }
     const cm = parseFloat(item.cm360) || 0;
+    // 恢复卡片高亮与标签
+    const card = document.getElementById('resultCard');
+    card.style.opacity = '1'; card.style.pointerEvents = 'auto';
+    const st = getSensType(cm);
+    const badge = document.getElementById('sensTypeBadge');
+    badge.style.display = 'inline-block';
+    badge.className = 'sens-type-badge sens-' + st.type;
+    badge.innerText = st.label;
     document.getElementById('recommendBox').style.display = "block";
     document.getElementById('recommendText').textContent = getRecommendation(cm, item.sens, item.vert);
+    const fov = document.getElementById('fovBox'); if(fov) fov.style.display = "block";
+    const conf = document.getElementById('confBox'); if(conf) conf.style.display = "block";
+    if(item.confidence != null){
+        document.getElementById('confPct').innerText = item.confidence + "%";
+        document.getElementById('confBar').style.width = item.confidence + "%";
+        document.getElementById('confReasons').innerHTML = "<div style='color:#888;'>来自历史记录（"+formatTime(item.time)+"）</div>";
+    }
     document.getElementById('historyModal').classList.remove('show');
 }
 
@@ -2119,15 +2391,15 @@ let trackAnimId = null;
 let trackMouseX = 0, trackMouseY = 0;
 let trackTimerId = null;
 let trackAngle = 0; // 平滑转向用的当前移动方向角
+let trackLastT = 0; // 上一帧时间戳（delta-time 物理，保证高刷屏速度一致）
 
 function resizeTrackCanvas(){
-    trackCanvas.width = trackCanvas.clientWidth;
-    trackCanvas.height = trackCanvas.clientHeight;
-    drawTrackBg();
+    fitCanvasDPR(trackCanvas);
+    if(trackRunning){ drawTrackFrame(); } else { drawTrackBg(); }
 }
 function drawTrackBg(){
     trackCtx.fillStyle="#161616";
-    trackCtx.fillRect(0,0,trackCanvas.width,trackCanvas.height);
+    trackCtx.fillRect(0,0,trackCanvas.clientWidth,trackCanvas.clientHeight);
 }
 function drawTrackFrame(){
     drawTrackBg();
@@ -2159,10 +2431,10 @@ document.getElementById('trackStart').onclick = ()=>{
         trackCtx.font = "bold 26px system-ui, sans-serif";
         trackCtx.textAlign = "center";
         trackCtx.textBaseline = "middle";
-        trackCtx.fillText("请将鼠标放置在画布左侧", trackCanvas.width/2, trackCanvas.height/2 - 45);
+        trackCtx.fillText("请将鼠标放置在画布左侧", trackCanvas.clientWidth/2, trackCanvas.clientHeight/2 - 45);
         trackCtx.font = "bold 72px system-ui, sans-serif";
         trackCtx.fillStyle = "#ef4444";
-        trackCtx.fillText(countdown > 0 ? countdown : "GO!", trackCanvas.width/2, trackCanvas.height/2 + 15);
+        trackCtx.fillText(countdown > 0 ? countdown : "GO!", trackCanvas.clientWidth/2, trackCanvas.clientHeight/2 + 15);
     };
     drawCountdown();
     const cdTimer = setInterval(()=>{
@@ -2182,12 +2454,13 @@ function startTrackTest(){
     statusEl.className = "";
     statusEl.innerText = "测试中 10s";
     trackRunning = true;
+    trackLastT = 0; // 重置帧计时，避免首帧大步长
     // 红点随机位置生成
-    trackTargetX = 60 + Math.random() * (trackCanvas.width - 120);
-    trackTargetY = 60 + Math.random() * (trackCanvas.height - 120);
+    trackTargetX = 60 + Math.random() * (trackCanvas.clientWidth - 120);
+    trackTargetY = 60 + Math.random() * (trackCanvas.clientHeight - 120);
     // 准星初始位置：画布中心（避免首帧停在左上角导致偏移虚高）
-    trackMouseX = trackCanvas.width / 2;
-    trackMouseY = trackCanvas.height / 2;
+    trackMouseX = trackCanvas.clientWidth / 2;
+    trackMouseY = trackCanvas.clientHeight / 2;
     // 随机初始方向
     trackAngle = Math.random() * Math.PI * 2;
     const speed = 1.5;
@@ -2208,20 +2481,26 @@ function startTrackTest(){
     trackTimerId = tickTimer;
 }
 
-function trackLoop(){
+function trackLoop(now){
     if(!trackRunning) return;
+    now = now || performance.now();
+    // delta-time 物理：以 60fps 为基准，高刷屏（120/144Hz）红点速度与标准屏一致
+    if(!trackLastT) trackLastT = now;
+    let dt = (now - trackLastT) / 16.667;
+    trackLastT = now;
+    dt = Math.max(0.25, Math.min(dt, 2.5));
     // 平滑轨迹：每帧小幅调整方向角（曲线游动），而不是突然变向
-    trackAngle += (Math.random() - 0.5) * 0.12;
+    trackAngle += (Math.random() - 0.5) * 0.12 * dt;
     const speed = 1.5;
     trackVx = Math.cos(trackAngle) * speed;
     trackVy = Math.sin(trackAngle) * speed;
-    trackTargetX += trackVx;
-    trackTargetY += trackVy;
+    trackTargetX += trackVx * dt;
+    trackTargetY += trackVy * dt;
     // 边界反弹：位置回正 + 方向指向内侧
     if(trackTargetX < 12){ trackTargetX = 12; trackAngle = 0; }              // 朝右
-    if(trackTargetX > trackCanvas.width - 12){ trackTargetX = trackCanvas.width - 12; trackAngle = Math.PI; } // 朝左
+    if(trackTargetX > trackCanvas.clientWidth - 12){ trackTargetX = trackCanvas.clientWidth - 12; trackAngle = Math.PI; } // 朝左
     if(trackTargetY < 12){ trackTargetY = 12; trackAngle = Math.PI/2; }      // 朝下
-    if(trackTargetY > trackCanvas.height - 12){ trackTargetY = trackCanvas.height - 12; trackAngle = -Math.PI/2; } // 朝上
+    if(trackTargetY > trackCanvas.clientHeight - 12){ trackTargetY = trackCanvas.clientHeight - 12; trackAngle = -Math.PI/2; } // 朝上
     drawTrackFrame();
     const offset = Math.hypot(trackMouseX - trackTargetX, trackMouseY - trackTargetY);
     trackOffsetList.push(offset);
@@ -2235,6 +2514,8 @@ function endTrackTest(){
     if(trackOffsetList.length > 0){
         const avg = trackOffsetList.reduce((s,v)=>s+v,0)/trackOffsetList.length;
         document.getElementById('trackOffset').innerText = avg.toFixed(2);
+        testMetrics.track = avg; // V2：写入综合模型
+        applyV2Model();
     }
     const s = document.getElementById('trackStatus');
     s.className = "badge-idle";
@@ -2271,13 +2552,22 @@ let stopCount = 0;
 let stopTimeList = [];
 
 function resizeStopCanvas(){
-    stopCanvas.width = stopCanvas.clientWidth;
-    stopCanvas.height = stopCanvas.clientHeight;
-    drawStopBg();
+    fitCanvasDPR(stopCanvas);
+    drawStopCurrent();
 }
 function drawStopBg(){
     stopCtx.fillStyle="#161616";
-    stopCtx.fillRect(0,0,stopCanvas.width,stopCanvas.height);
+    stopCtx.fillRect(0,0,stopCanvas.clientWidth,stopCanvas.clientHeight);
+}
+// 重绘当前画面（背景 + 测试中的红点），供画布尺寸/DPR 变化后恢复
+function drawStopCurrent(){
+    drawStopBg();
+    if(stopRunning){
+        stopCtx.fillStyle="#ef4444";
+        stopCtx.beginPath();
+        stopCtx.arc(stopTargetX, stopTargetY, 14, 0, Math.PI*2);
+        stopCtx.fill();
+    }
 }
 function nextStopTarget(){
     if(stopCount >= 10){
@@ -2288,11 +2578,14 @@ function nextStopTarget(){
         if(stopTimeList.length > 0){
             const avg = stopTimeList.reduce((a,b)=>a+b,0)/stopTimeList.length;
             document.getElementById('stopAvgTime').innerText = avg.toFixed(0);
+            testMetrics.stopMs = avg;   // V2：写入综合模型
+            testMetrics.stopHits = stopCount;
+            applyV2Model();
         }
         return;
     }
-    stopTargetX = 50 + Math.random() * (stopCanvas.width - 100);
-    stopTargetY = 50 + Math.random() * (stopCanvas.height - 100);
+    stopTargetX = 50 + Math.random() * (stopCanvas.clientWidth - 100);
+    stopTargetY = 50 + Math.random() * (stopCanvas.clientHeight - 100);
     drawStopBg();
     stopCtx.fillStyle="#ef4444";
     stopCtx.beginPath();
@@ -2346,22 +2639,22 @@ let zoomLevelIdx = 0;
 const zoomLevels = [1, 2, 3, 4, 6];
 let zoomTargetX = 0, zoomTargetY = 0;
 let zoomOffsetList = [];
+let zoomLevelOffsets = {}; // V2：按倍率分别记录偏移 {1:[...], 2:[...], ...}
 let zoomMouseX = 0, zoomMouseY = 0;
 let zoomShots = 0, zoomHits = 0;
 
 function resizeZoomCanvas(){
-    zoomCanvas.width = zoomCanvas.clientWidth;
-    zoomCanvas.height = zoomCanvas.clientHeight;
-    drawZoomBg();
+    fitCanvasDPR(zoomCanvas);
+    if(zoomRunning){ drawZoomFrame(); } else { drawZoomBg(); }
 }
 function drawZoomBg(){
     zoomCtx.fillStyle="#161616";
-    zoomCtx.fillRect(0,0,zoomCanvas.width,zoomCanvas.height);
+    zoomCtx.fillRect(0,0,zoomCanvas.clientWidth,zoomCanvas.clientHeight);
 }
 // 画场景背景（网格 + 固定目标点），带镜头缩放效果
 function drawZoomFrame(){
-    const cw = zoomCanvas.width;
-    const ch = zoomCanvas.height;
+    const cw = zoomCanvas.clientWidth;
+    const ch = zoomCanvas.clientHeight;
     const zoom = zoomLevels[zoomLevelIdx] || 1;
 
     zoomCtx.save();
@@ -2504,6 +2797,15 @@ function nextZoomTarget(){
             const avg = zoomOffsetList.reduce((a,b)=>a+b,0)/zoomOffsetList.length;
             document.getElementById('zoomOffset').innerText = avg.toFixed(2);
         }
+        // V2：汇总每个倍率的平均偏移，写入综合模型
+        const byLevel = {};
+        Object.keys(zoomLevelOffsets).forEach(lv => {
+            const arr = zoomLevelOffsets[lv];
+            if(arr && arr.length) byLevel[lv] = arr.reduce((a,b)=>a+b,0)/arr.length;
+        });
+        testMetrics.zoom = byLevel;
+        testMetrics.zoomAvg = zoomOffsetList.length ? (zoomOffsetList.reduce((a,b)=>a+b,0)/zoomOffsetList.length) : null;
+        applyV2Model();
         // 命中率统计
         const rate = zoomShots > 0 ? Math.round(zoomHits / zoomShots * 100) : 0;
         document.getElementById('zoomHits').innerText = zoomHits + " / " + zoomShots + "（" + rate + "%）";
@@ -2513,8 +2815,8 @@ function nextZoomTarget(){
     document.getElementById('zoomLevel').innerText = zoom + "x";
     // 目标点位置（世界坐标，不随倍率变）
     const margin = 60;
-    zoomTargetX = margin + Math.random() * (zoomCanvas.width - margin * 2);
-    zoomTargetY = margin + Math.random() * (zoomCanvas.height - margin * 2);
+    zoomTargetX = margin + Math.random() * (zoomCanvas.clientWidth - margin * 2);
+    zoomTargetY = margin + Math.random() * (zoomCanvas.clientHeight - margin * 2);
     drawZoomFrame();
 }
 
@@ -2522,10 +2824,11 @@ document.getElementById('zoomStart').onclick = ()=>{
     zoomRunning = true;
     zoomLevelIdx = 0;
     zoomOffsetList = [];
+    zoomLevelOffsets = {};
     zoomShots = 0;
     zoomHits = 0;
-    zoomMouseX = zoomCanvas.width / 2;
-    zoomMouseY = zoomCanvas.height / 2;
+    zoomMouseX = zoomCanvas.clientWidth / 2;
+    zoomMouseY = zoomCanvas.clientHeight / 2;
     document.getElementById('zoomOffset').innerText = "--";
     document.getElementById('zoomHits').innerText = "--";
     const s = document.getElementById('zoomStatus');
@@ -2538,6 +2841,7 @@ document.getElementById('zoomReset').onclick = ()=>{
     zoomRunning = false;
     zoomLevelIdx = 0;
     zoomOffsetList = [];
+    zoomLevelOffsets = {};
     zoomShots = 0;
     zoomHits = 0;
     drawZoomBg();
@@ -2553,8 +2857,15 @@ zoomCanvas.addEventListener('mousemove',(e)=>{
     zoomMouseX = e.clientX - rect.left;
     zoomMouseY = e.clientY - rect.top;
     if(!zoomRunning) return;
-    // 偏移：镜头中心到目标点的距离（倍率不影响这个计算）
-    zoomOffsetList.push(Math.hypot(zoomMouseX - zoomTargetX, zoomMouseY - zoomTargetY));
+    // 偏移：镜头中心到目标点的距离
+    const off = Math.hypot(zoomMouseX - zoomTargetX, zoomMouseY - zoomTargetY);
+    zoomOffsetList.push(off);
+    // V2：按当前倍率分别记录
+    const curLv = zoomLevels[zoomLevelIdx];
+    if(curLv != null){
+        if(!zoomLevelOffsets[curLv]) zoomLevelOffsets[curLv] = [];
+        zoomLevelOffsets[curLv].push(off);
+    }
     drawZoomFrame();
 });
 zoomCanvas.addEventListener('mousedown',()=>{
@@ -2586,6 +2897,16 @@ function handleAllResize(){
 window.addEventListener('resize', handleAllResize);
 resizeStopCanvas();
 resizeZoomCanvas();
+
+// 屏幕缩放 / 系统 DPI 变化时重新适配所有画布（切换显示器、浏览器缩放等场景）
+try {
+    const onDprChange = () => {
+        handleAllResize();
+        const next = window.matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)');
+        next.addEventListener('change', onDprChange, { once: true });
+    };
+    window.matchMedia('(resolution: ' + (window.devicePixelRatio || 1) + 'dppx)').addEventListener('change', onDprChange, { once: true });
+} catch(err) { /* 浏览器不支持时忽略 */ }
 </script>
 
 <div class="footer-nav" style="text-align:center;margin-top:32px;padding-top:20px;border-top:1px solid #222;">
@@ -2657,9 +2978,19 @@ resizeZoomCanvas();
                     <span class="val" id="tk2xVal">19</span>
                 </div>
                 <div class="tuning-slider-row">
+                    <label>3x</label>
+                    <input type="range" id="tk3x" min="1" max="100" value="16">
+                    <span class="val" id="tk3xVal">16</span>
+                </div>
+                <div class="tuning-slider-row">
                     <label>4x</label>
                     <input type="range" id="tk4x" min="1" max="100" value="14">
                     <span class="val" id="tk4xVal">14</span>
+                </div>
+                <div class="tuning-slider-row">
+                    <label>6x</label>
+                    <input type="range" id="tk6x" min="1" max="100" value="11">
+                    <span class="val" id="tk6xVal">11</span>
                 </div>
                 <div class="tuning-slider-row">
                     <label>8x</label>
@@ -2671,7 +3002,7 @@ resizeZoomCanvas();
 
         <div class="tuning-actions">
             <button class="reset-btn" onclick="tuningReset()">🔄 重置为推荐值</button>
-            <button class="confirm-btn" onclick="tuningConfirm()">✅ 确认使用这套参数</button>
+            <button class="confirm-btn" onclick="tuningConfirm(this)">✅ 确认使用这套参数</button>
             <span id="tkDirty" style="display:none;color:#f59e0b;font-size:12px;margin-left:6px;">● 有未应用的调整，主结果仍是旧值</span>
         </div>
     </div>
@@ -2757,7 +3088,7 @@ function showMainView() {
     document.getElementById('previewView').classList.remove('show');
     document.getElementById('feedbackView').classList.remove('show');
     _setNavBtn(0);
-    window.scrollTo(0, 0);
+    showStep(typeof curStep === 'number' ? curStep : 1); // 回到主视图时重新适配当前步骤的画布
 }
 function showPreviewView() {
     document.getElementById('mainView').classList.add('hide');
@@ -2776,6 +3107,57 @@ function showFeedbackView() {
     window.scrollTo(0, 0);
 }
 
+// ===== 向导式步骤控制 =====
+let curStep = 1;
+const WIZARD_LAST_STEP = 6;
+
+function stepDone(n){
+    if(n === 1) return testMetrics.cm != null;
+    if(n === 2) return testMetrics.track != null;
+    if(n === 3) return testMetrics.stopMs != null;
+    if(n === 4) return Object.keys(testMetrics.zoom).length > 0;
+    return false;
+}
+
+// 步骤条渲染（状态未变化时跳过 DOM 更新，避免测试中频繁重绘）
+function renderWizardSteps(force){
+    const sig = curStep + '|' + [1,2,3,4].map(stepDone).join(',');
+    if(!force && sig === renderWizardSteps._last) return;
+    renderWizardSteps._last = sig;
+    const icons = ['①','②','③','④','🖥️','🎯'];
+    document.querySelectorAll('#wizardSteps .wstep').forEach(el => {
+        const n = parseInt(el.dataset.step, 10);
+        const done = n !== curStep && stepDone(n);
+        el.classList.toggle('current', n === curStep);
+        el.classList.toggle('done', done);
+        const dot = el.querySelector('.wstep-dot');
+        if(dot) dot.innerText = done ? '✓' : icons[n-1];
+    });
+    const info = document.getElementById('wStepInfo');
+    if(info) info.innerText = '第 ' + curStep + ' / ' + WIZARD_LAST_STEP + ' 步';
+    const prev = document.getElementById('wPrev');
+    const next = document.getElementById('wNext');
+    if(prev) prev.disabled = curStep <= 1;
+    if(next) next.disabled = curStep >= WIZARD_LAST_STEP;
+}
+
+function showStep(n){
+    curStep = Math.max(1, Math.min(WIZARD_LAST_STEP, n));
+    document.querySelectorAll('.wstep-page').forEach(p => {
+        p.classList.toggle('show', parseInt(p.dataset.page, 10) === curStep);
+    });
+    // 激活页面时重新适配画布（隐藏页面的画布尺寸为 0）
+    if(curStep === 1) resizeCanvas();
+    if(curStep === 2) resizeTrackCanvas();
+    if(curStep === 3) resizeStopCanvas();
+    if(curStep === 4) resizeZoomCanvas();
+    renderWizardSteps(true);
+    window.scrollTo(0, 0);
+}
+
+function wPrevStep(){ showStep(curStep - 1); }
+function wNextStep(){ showStep(curStep + 1); }
+
 // ===== 🎮 微调实验室 =====
 const tuningCanvas = document.getElementById('tuningCanvas');
 const tuningCtx = tuningCanvas?.getContext('2d');
@@ -2785,11 +3167,31 @@ let tgtX = 0, tgtY = 0, tgtVX = 0, tgtVY = 0;
 let aimX = 0, aimY = 0; // 游戏内准星（受灵敏度影响）
 let lastMouseX = 0, lastMouseY = 0;
 let tuningHits = 0, tuningShots = 0;
+let tuningLastT = 0;     // 上一帧时间戳（delta-time 物理）
+let tuningStatsT = 0;    // 统计面板上次刷新时间（节流）
+let gridCanvas = null;   // 网格离屏缓存（避免每帧重绘网格线）
+let edgeStuckFrames = 0; // 红点贴边看门狗计数
 
 function initTuningCanvas() {
     if(!tuningCanvas) return;
-    tuningCanvas.width = tuningCanvas.clientWidth;
-    tuningCanvas.height = tuningCanvas.clientHeight;
+    fitCanvasDPR(tuningCanvas);
+
+    // 预渲染背景+网格到离屏 canvas（尺寸/DPR 变化时重建），主循环每帧只 drawImage
+    const gcw = tuningCanvas.clientWidth, gch = tuningCanvas.clientHeight;
+    const gdpr = window.devicePixelRatio || 1;
+    gridCanvas = document.createElement('canvas');
+    gridCanvas.width = Math.round(gcw * gdpr);
+    gridCanvas.height = Math.round(gch * gdpr);
+    const gctx = gridCanvas.getContext('2d');
+    gctx.setTransform(gdpr, 0, 0, gdpr, 0, 0);
+    gctx.fillStyle = '#0d0d0d';
+    gctx.fillRect(0, 0, gcw, gch);
+    gctx.strokeStyle = '#1a1a1a';
+    gctx.lineWidth = 1;
+    for(let gx = 0; gx <= gcw; gx += 40){ gctx.beginPath(); gctx.moveTo(gx, 0); gctx.lineTo(gx, gch); gctx.stroke(); }
+    for(let gy = 0; gy <= gch; gy += 40){ gctx.beginPath(); gctx.moveTo(0, gy); gctx.lineTo(gcw, gy); gctx.stroke(); }
+    tuningLastT = 0;
+    edgeStuckFrames = 0;
 
     // 如果已经有推荐值，加载到滑块
     const curSens = parseInt(document.getElementById('sensResult')?.innerText) || 43;
@@ -2798,7 +3200,9 @@ function initTuningCanvas() {
     const curFire = parseInt(document.getElementById('fireResult')?.innerText) || 41;
     const cur1x = parseInt(document.getElementById('s1x')?.innerText) || 24;
     const cur2x = parseInt(document.getElementById('s2x')?.innerText) || 19;
+    const cur3x = parseInt(document.getElementById('s3x')?.innerText) || 16;
     const cur4x = parseInt(document.getElementById('s4x')?.innerText) || 14;
+    const cur6x = parseInt(document.getElementById('s6x')?.innerText) || 11;
     const cur8x = parseInt(document.getElementById('s8x')?.innerText) || 9;
 
     _setTkVal('tkSens', curSens, 'tkSensVal');
@@ -2807,17 +3211,19 @@ function initTuningCanvas() {
     _setTkVal('tkFire', curFire, 'tkFireVal');
     _setTkVal('tk1x', cur1x, 'tk1xVal');
     _setTkVal('tk2x', cur2x, 'tk2xVal');
+    _setTkVal('tk3x', cur3x, 'tk3xVal');
     _setTkVal('tk4x', cur4x, 'tk4xVal');
+    _setTkVal('tk6x', cur6x, 'tk6xVal');
     _setTkVal('tk8x', cur8x, 'tk8xVal');
 
     // 随机初始化目标
-    tgtX = Math.random() * tuningCanvas.width;
-    tgtY = Math.random() * tuningCanvas.height;
+    tgtX = Math.random() * tuningCanvas.clientWidth;
+    tgtY = Math.random() * tuningCanvas.clientHeight;
     tgtVX = (Math.random() - 0.5) * 3;
     tgtVY = (Math.random() - 0.5) * 3;
 
-    aimX = tuningCanvas.width / 2;
-    aimY = tuningCanvas.height / 2;
+    aimX = tuningCanvas.clientWidth / 2;
+    aimY = tuningCanvas.clientHeight / 2;
 
     // 绑定事件
     if(!tuningCanvas._bound) {
@@ -2894,8 +3300,8 @@ function onTuningMouseMove(e) {
     } else {
         // 普通模式：用绝对坐标差 + 边界 clamp 防止出画布
         const rect = tuningCanvas.getBoundingClientRect();
-        const mx = Math.max(0, Math.min(tuningCanvas.width, e.clientX - rect.left));
-        const my = Math.max(0, Math.min(tuningCanvas.height, e.clientY - rect.top));
+        const mx = Math.max(0, Math.min(tuningCanvas.clientWidth, e.clientX - rect.left));
+        const my = Math.max(0, Math.min(tuningCanvas.clientHeight, e.clientY - rect.top));
         dx = mx - lastMouseX;
         dy = my - lastMouseY;
         lastMouseX = mx;
@@ -2907,24 +3313,52 @@ function onTuningMouseMove(e) {
     aimY += dy * ratio;
 
     // 边界限制（两种模式都要，防止异常情况下准星飞出）
-    aimX = Math.max(10, Math.min(tuningCanvas.width - 10, aimX));
-    aimY = Math.max(10, Math.min(tuningCanvas.height - 10, aimY));
+    aimX = Math.max(10, Math.min(tuningCanvas.clientWidth - 10, aimX));
+    aimY = Math.max(10, Math.min(tuningCanvas.clientHeight - 10, aimY));
 }
 
-function tuningLoop() {
+function tuningLoop(now) {
     if(!tuningRunning || !tuningCanvas) return;
+    now = now || performance.now();
 
-    // 更新目标位置
-    tgtX += tgtVX;
-    tgtY += tgtVY;
-    // 边界反弹：位置钳制回界内 + 速度强制指向内侧（防止贴边抖动卡死）
-    if(tgtX < 30) { tgtX = 30; tgtVX = Math.abs(tgtVX) || 1; }
-    if(tgtX > tuningCanvas.width - 30) { tgtX = tuningCanvas.width - 30; tgtVX = -(Math.abs(tgtVX) || 1); }
-    if(tgtY < 30) { tgtY = 30; tgtVY = Math.abs(tgtVY) || 1; }
-    if(tgtY > tuningCanvas.height - 30) { tgtY = tuningCanvas.height - 30; tgtVY = -(Math.abs(tgtVY) || 1); }
+    // delta-time 物理：以 60fps 为基准，高刷屏（120/144Hz）红点不会变快或变速频繁
+    if(!tuningLastT) tuningLastT = now;
+    let dt = (now - tuningLastT) / 16.667;
+    tuningLastT = now;
+    dt = Math.max(0.25, Math.min(dt, 2.5)); // 切后台/切页回来时避免大步长跳变
 
-    // 随机变速
-    if(Math.random() < 0.01) {
+    const cw = tuningCanvas.clientWidth;
+    const ch = tuningCanvas.clientHeight;
+    const ctx = tuningCtx;
+    const EDGE = 30;   // 边缘安全距离
+    const MIN_V = 1.2; // 反弹后最小内向速度（px/帧 @60fps），杜绝贴边慢爬
+
+    // 更新目标位置（按 dt 缩放）
+    tgtX += tgtVX * dt;
+    tgtY += tgtVY * dt;
+
+    // 边界反弹：钳制位置 + 速度强制指向内侧且不小于最小速度
+    let bounced = false;
+    if(tgtX < EDGE) { tgtX = EDGE; tgtVX = Math.max(Math.abs(tgtVX), MIN_V); bounced = true; }
+    if(tgtX > cw - EDGE) { tgtX = cw - EDGE; tgtVX = -Math.max(Math.abs(tgtVX), MIN_V); bounced = true; }
+    if(tgtY < EDGE) { tgtY = EDGE; tgtVY = Math.max(Math.abs(tgtVY), MIN_V); bounced = true; }
+    if(tgtY > ch - EDGE) { tgtY = ch - EDGE; tgtVY = -Math.max(Math.abs(tgtVY), MIN_V); bounced = true; }
+
+    // 贴边看门狗：连续多帧停在边缘带低速蹭边 → 朝画面中心方向踢一脚
+    const nearEdge = tgtX < EDGE + 8 || tgtX > cw - EDGE - 8 || tgtY < EDGE + 8 || tgtY > ch - EDGE - 8;
+    if(nearEdge && !bounced) edgeStuckFrames++;
+    else edgeStuckFrames = 0;
+    if(edgeStuckFrames > 20) {
+        const baseAng = Math.atan2(ch/2 - tgtY, cw/2 - tgtX);
+        const ang = baseAng + (Math.random() - 0.5) * 1.2;
+        const sp = 1.5 + Math.random() * 1.5;
+        tgtVX = Math.cos(ang) * sp;
+        tgtVY = Math.sin(ang) * sp;
+        edgeStuckFrames = 0;
+    }
+
+    // 随机变速（概率按 dt 缩放，任何刷新率下都约每秒 0.6 次）
+    if(Math.random() < 0.01 * dt) {
         tgtVX = (Math.random() - 0.5) * 4;
         tgtVY = (Math.random() - 0.5) * 4;
         // 保证最小速度，避免低速时贴边反复反转
@@ -2932,22 +3366,11 @@ function tuningLoop() {
         if(Math.abs(tgtVY) < 0.5) tgtVY = tgtVY < 0 ? -0.5 : 0.5;
     }
 
-    const cw = tuningCanvas.width;
-    const ch = tuningCanvas.height;
-    const ctx = tuningCtx;
-
-    // 背景
-    ctx.fillStyle = '#0d0d0d';
-    ctx.fillRect(0, 0, cw, ch);
-
-    // 网格
-    ctx.strokeStyle = '#1a1a1a';
-    ctx.lineWidth = 1;
-    for(let x = 0; x <= cw; x += 40){
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ch); ctx.stroke();
-    }
-    for(let y = 0; y <= ch; y += 40){
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cw, y); ctx.stroke();
+    // 背景 + 网格（离屏缓存，每帧一次 drawImage，不再重绘几十条线）
+    if(gridCanvas) ctx.drawImage(gridCanvas, 0, 0, cw, ch);
+    else {
+        ctx.fillStyle = '#0d0d0d';
+        ctx.fillRect(0, 0, cw, ch);
     }
 
     // 目标圆
@@ -2987,23 +3410,25 @@ function tuningLoop() {
         ctx.fillText('👉 点击画布锁定鼠标（FPS 风格）· 左键开火', cw/2, ch - 12);
     }
 
-    // 更新统计面板
-    const curSens = _getTkVal('tkSens');
-    const curAim = _getTkVal('tkAim');
-    document.getElementById('tsSens').innerText = curSens;
-    document.getElementById('tsAim').innerText = curAim;
-
-    const dpi = getDPI();
-    const pxPerCm = dpi / 2.54;
-    // 近似 cm/360 显示（基于 sens 比例估算）
-    const baseCm = 2.8; // sens=43 时约 2.8cm
-    const estCm = (baseCm * (43 / curSens)).toFixed(1);
-    document.getElementById('tsCm360').innerText = estCm;
-
-    const acc = tuningShots > 0 ? ((tuningHits / tuningShots) * 100).toFixed(0) + '%' : '--';
-    document.getElementById('tsAcc').innerText = acc;
+    // 更新统计面板（节流 ~6 次/秒 + 仅值变化时写 DOM，避免每帧强制布局造成卡顿）
+    if(now - tuningStatsT > 150) {
+        tuningStatsT = now;
+        const curSens = _getTkVal('tkSens');
+        _setStat('tsSens', curSens);
+        _setStat('tsAim', _getTkVal('tkAim'));
+        // 近似 cm/360（sens=43 时约 2.8cm，按 sens 反比估算）
+        _setStat('tsCm360', (2.8 * (43 / curSens)).toFixed(1));
+        _setStat('tsAcc', tuningShots > 0 ? ((tuningHits / tuningShots) * 100).toFixed(0) + '%' : '--');
+    }
 
     tuningAnimId = requestAnimationFrame(tuningLoop);
+}
+
+// 统计面板写入：缓存上次值，仅变化时更新 DOM
+function _setStat(id, val){
+    const el = document.getElementById(id);
+    const s = String(val);
+    if(el && el._last !== s){ el._last = s; el.innerText = s; }
 }
 
 function tuningReset() {
@@ -3014,7 +3439,9 @@ function tuningReset() {
     const curFire = parseInt(document.getElementById('fireResult')?.innerText) || 41;
     const cur1x = parseInt(document.getElementById('s1x')?.innerText) || 24;
     const cur2x = parseInt(document.getElementById('s2x')?.innerText) || 19;
+    const cur3x = parseInt(document.getElementById('s3x')?.innerText) || 16;
     const cur4x = parseInt(document.getElementById('s4x')?.innerText) || 14;
+    const cur6x = parseInt(document.getElementById('s6x')?.innerText) || 11;
     const cur8x = parseInt(document.getElementById('s8x')?.innerText) || 9;
 
     _setTkVal('tkSens', curSens, 'tkSensVal');
@@ -3023,14 +3450,16 @@ function tuningReset() {
     _setTkVal('tkFire', curFire, 'tkFireVal');
     _setTkVal('tk1x', cur1x, 'tk1xVal');
     _setTkVal('tk2x', cur2x, 'tk2xVal');
+    _setTkVal('tk3x', cur3x, 'tk3xVal');
     _setTkVal('tk4x', cur4x, 'tk4xVal');
+    _setTkVal('tk6x', cur6x, 'tk6xVal');
     _setTkVal('tk8x', cur8x, 'tk8xVal');
     tuningHits = 0; tuningShots = 0;
     const dirty0 = document.getElementById('tkDirty');
     if(dirty0) dirty0.style.display = 'none';
 }
 
-function tuningConfirm() {
+function tuningConfirm(btn) {
     // 把滑块值同步回结果卡片
     const s = _getTkVal('tkSens');
     const v = _getTkVal('tkVert');
@@ -3038,7 +3467,9 @@ function tuningConfirm() {
     const f = _getTkVal('tkFire');
     const s1 = _getTkVal('tk1x');
     const s2 = _getTkVal('tk2x');
+    const s3 = _getTkVal('tk3x');
     const s4 = _getTkVal('tk4x');
+    const s6 = _getTkVal('tk6x');
     const s8 = _getTkVal('tk8x');
 
     document.getElementById('sensResult').innerText = s;
@@ -3047,7 +3478,9 @@ function tuningConfirm() {
     document.getElementById('fireResult').innerText = f;
     document.getElementById('s1x').innerText = s1;
     document.getElementById('s2x').innerText = s2;
+    document.getElementById('s3x').innerText = s3;
     document.getElementById('s4x').innerText = s4;
+    document.getElementById('s6x').innerText = s6;
     document.getElementById('s8x').innerText = s8;
 
     // 清除"未应用"标记
@@ -3055,7 +3488,6 @@ function tuningConfirm() {
     if(dirty) dirty.style.display = 'none';
 
     // 显示成功提示
-    const btn = event?.target;
     const orig = btn?.innerText;
     if(btn) {
         btn.innerText = '✅ 已应用到结果卡片！';
@@ -3072,7 +3504,7 @@ document.addEventListener('input', (e) => {
     const id = e.target.id;
     const map = {
         tkSens: 'tkSensVal', tkVert: 'tkVertVal', tkAim: 'tkAimVal', tkFire: 'tkFireVal',
-        tk1x: 'tk1xVal', tk2x: 'tk2xVal', tk4x: 'tk4xVal', tk8x: 'tk8xVal'
+        tk1x: 'tk1xVal', tk2x: 'tk2xVal', tk3x: 'tk3xVal', tk4x: 'tk4xVal', tk6x: 'tk6xVal', tk8x: 'tk8xVal'
     };
     if(map[id]) {
         const span = document.getElementById(map[id]);
@@ -3122,11 +3554,13 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     const btns = document.querySelectorAll('.hero-nav-btn');
     if (btns[0]) btns[0].classList.add('active');
+    renderWizardSteps(true); // 初始化向导步骤条状态
 
-    // 阻止画布上的文本选择误触
+    // 阻止画布上的文本选择误触（e.target 可能是 document，无 closest/tagName，需防御）
     document.addEventListener('selectstart', (e) => {
-        const target = e.target;
-        if (target.tagName === 'CANVAS' || target.closest('.panel') || target.closest('.tuning-lab') || target.closest('.res-converter')) {
+        const t = e.target;
+        if(!t || !t.tagName) return;
+        if (t.tagName === 'CANVAS' || (t.closest && (t.closest('.panel') || t.closest('.tuning-lab') || t.closest('.res-converter')))) {
             e.preventDefault();
         }
     });

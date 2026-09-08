@@ -2798,13 +2798,19 @@ function tuningLoop() {
     // 更新目标位置
     tgtX += tgtVX;
     tgtY += tgtVY;
-    if(tgtX < 30 || tgtX > tuningCanvas.width - 30) tgtVX *= -1;
-    if(tgtY < 30 || tgtY > tuningCanvas.height - 30) tgtVY *= -1;
+    // 边界反弹：位置钳制回界内 + 速度强制指向内侧（防止贴边抖动卡死）
+    if(tgtX < 30) { tgtX = 30; tgtVX = Math.abs(tgtVX) || 1; }
+    if(tgtX > tuningCanvas.width - 30) { tgtX = tuningCanvas.width - 30; tgtVX = -(Math.abs(tgtVX) || 1); }
+    if(tgtY < 30) { tgtY = 30; tgtVY = Math.abs(tgtVY) || 1; }
+    if(tgtY > tuningCanvas.height - 30) { tgtY = tuningCanvas.height - 30; tgtVY = -(Math.abs(tgtVY) || 1); }
 
     // 随机变速
     if(Math.random() < 0.01) {
         tgtVX = (Math.random() - 0.5) * 4;
         tgtVY = (Math.random() - 0.5) * 4;
+        // 保证最小速度，避免低速时贴边反复反转
+        if(Math.abs(tgtVX) < 0.5) tgtVX = tgtVX < 0 ? -0.5 : 0.5;
+        if(Math.abs(tgtVY) < 0.5) tgtVY = tgtVY < 0 ? -0.5 : 0.5;
     }
 
     const cw = tuningCanvas.width;

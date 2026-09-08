@@ -1,9 +1,10 @@
-﻿<!DOCTYPE html>
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PUBG 灵敏度校准助手</title>
+    <script defer src="https://cloud.umami.is/script.js" data-website-id="19f2ac78-8780-4122-a4eb-e95b8b4ef88a"></script>
     <style>
         * {
             margin: 0;
@@ -50,6 +51,126 @@
             max-width: 520px;
             margin: 0 auto;
             line-height: 1.6;
+        }
+        .hero-nav {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .hero-nav-btn {
+            background: transparent;
+            color: #c0c0c0;
+            border: 1px solid #444;
+            padding: 7px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+            margin: 0;
+        }
+        .hero-nav-btn:hover {
+            border-color: #F5A623;
+            color: #F5A623;
+            background: rgba(245, 166, 35, 0.08);
+        }
+        .hero-nav-btn.active {
+            background: #F5A623;
+            color: #1a1a1a;
+            border-color: #F5A623;
+        }
+        .hero-nav-btn.ghost {
+            background: transparent;
+            color: #F5A623;
+            border-color: #F5A623;
+        }
+
+        /* ===== 视图切换 ===== */
+        #feedbackView {
+            display: none;
+        }
+        #feedbackView.show {
+            display: block;
+        }
+        #mainView.hide {
+            display: none;
+        }
+
+        /* ===== Feedback 面板 ===== */
+        .btn-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+        .btn {
+            background: #F5A623;
+            color: #1a1a1a;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.15s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover { background: #e09618; }
+        .btn.secondary {
+            background: #333;
+            color: #ddd;
+        }
+        .btn.secondary:hover { background: #404040; }
+
+        .issue-tpl {
+            background: #111;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            padding: 14px 16px;
+            margin-top: 12px;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 13px;
+            color: #b0b0b0;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .copy-btn {
+            margin-top: 10px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .copy-btn.copied {
+            background: #2a8a4a;
+            color: #fff;
+        }
+
+        .rating-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .rating-btn {
+            background: #222;
+            color: #ccc;
+            border: 1px solid #333;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            margin: 0;
+        }
+        .rating-btn:hover {
+            background: #333;
+        }
+        .rating-btn.active {
+            background: #F5A623;
+            color: #1a1a1a;
+            border-color: #F5A623;
         }
 
         /* ===== 面板 ===== */
@@ -403,9 +524,14 @@
         <div class="hero-content">
             <h1><span class="accent">PUBG</span> 灵敏度校准助手</h1>
             <div class="tip">⚠ 浏览器鼠标输入与游戏引擎存在差异，本工具仅作为辅助参考，非官方工具</div>
+            <div class="hero-nav">
+                <button class="hero-nav-btn" onclick="showMainView()">🎯 测试工具</button>
+                <button class="hero-nav-btn ghost" onclick="showFeedbackView()">💬 用户反馈</button>
+            </div>
         </div>
-</header>
+    </header>
 
+    <div id="mainView">
     <div class="panel">
         <p>操作说明：在下方画布，<strong>按住鼠标左键</strong>，横向完整滑动画布2‑3次，程序记录你的鼠标物理移动习惯。</p >
         <div class="dpi-row">
@@ -1331,5 +1457,140 @@ window.addEventListener('resize', ()=>{
 resizeStopCanvas();
 resizeZoomCanvas();
 </script>
+
+<div class="footer-nav" style="text-align:center;margin-top:32px;padding-top:20px;border-top:1px solid #222;">
+    <a href="#" onclick="showFeedbackView();return false;" style="color:#888;text-decoration:none;font-size:13px;transition:color 0.15s;" onmouseover="this.style.color='#F5A623'" onmouseout="this.style.color='#888'">💬 用户反馈 & 问题提交</a>
+</div>
+</div>
+
+<div id="feedbackView">
+    <div class="panel">
+        <h2>📝 如何提交反馈</h2>
+        <p>我们使用 GitHub Issues 收集用户反馈，你需要一个 GitHub 账号才能提交。如果你还没有账号，可以免费注册。</p>
+        <p style="margin-top:10px;">提交反馈前，请尽量包含以下信息，帮助我们更快定位问题：</p>
+        <ul style="padding-left:20px;margin:8px 0;">
+            <li style="margin:4px 0;">你使用的鼠标 DPI 和游戏内灵敏度（如果方便）</li>
+            <li style="margin:4px 0;">你在测试中的具体操作（点击了什么按钮、哪一步出了问题）</li>
+            <li style="margin:4px 0;">浏览器类型和版本（如 Edge 131、Chrome 130）</li>
+            <li style="margin:4px 0;">问题截图或录屏（如果有）</li>
+        </ul>
+        <div class="btn-group">
+            <a class="btn" href="https://github.com/Dongy0/pubg-sens-tool/issues/new" target="_blank">📮 提交新 Issue</a>
+            <a class="btn secondary" href="https://github.com/Dongy0/pubg-sens-tool/issues" target="_blank">📋 查看已有 Issues</a>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>⭐ 快速评分</h2>
+        <p>快速给这个工具打个分吧（点击后会复制到剪贴板，提交 Issue 时可以粘贴）：</p>
+        <div class="rating-row" id="ratingRow">
+            <button class="rating-btn" data-rating="1">1 - 很差</button>
+            <button class="rating-btn" data-rating="2">2 - 不好</button>
+            <button class="rating-btn" data-rating="3">3 - 一般</button>
+            <button class="rating-btn" data-rating="4">4 - 不错</button>
+            <button class="rating-btn" data-rating="5">5 - 很好</button>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>📋 推荐反馈模板</h2>
+        <p>复制下面的模板，提交 Issue 时填写完整，方便我们更快处理：</p>
+        <div class="issue-tpl" id="tplText">## 反馈标题
+
+### 你的 DPI & 灵敏度
+- 鼠标 DPI：___
+- 360°测试结果：___ cm
+- 游戏内灵敏度（常规）：___
+
+### 反馈类型
+- [ ] Bug 报告
+- [ ] 功能建议
+- [ ] 灵敏度计算问题
+- [ ] 其他
+
+### 详细描述
+___
+
+### 浏览器信息
+- 浏览器：___
+- 版本：___</div>
+        <button class="btn secondary copy-btn" onclick="copyTpl()">📋 复制模板</button>
+    </div>
+
+    <div class="panel">
+        <h2>💬 其他联系渠道</h2>
+        <p>如果不方便使用 GitHub，也可以通过以下方式联系：</p>
+        <ul style="padding-left:20px;margin:8px 0;">
+            <li style="margin:4px 0;">📧 邮箱：<a href="mailto:3694395556@qq.com" style="color:#F5A623;text-decoration:none;">3694395556@qq.com</a></li>
+            <li style="margin:4px 0;">💻 GitHub：<a href="https://github.com/Dongy0" target="_blank" style="color:#F5A623;text-decoration:none;">@Dongy0</a></li>
+        </ul>
+    </div>
+</div>
+
+<script>
+// ===== 视图切换 =====
+function showMainView() {
+    document.getElementById('mainView').classList.remove('hide');
+    document.getElementById('feedbackView').classList.remove('show');
+    document.querySelectorAll('.hero-nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.hero-nav-btn').forEach(b => b.classList.remove('ghost'));
+    const btns = document.querySelectorAll('.hero-nav-btn');
+    btns[0].classList.add('active');
+    btns[1].classList.add('ghost');
+    window.scrollTo(0, 0);
+}
+function showFeedbackView() {
+    document.getElementById('mainView').classList.add('hide');
+    document.getElementById('feedbackView').classList.add('show');
+    document.querySelectorAll('.hero-nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.hero-nav-btn').forEach(b => b.classList.remove('ghost'));
+    const btns = document.querySelectorAll('.hero-nav-btn');
+    btns[0].classList.add('ghost');
+    btns[1].classList.add('active');
+    window.scrollTo(0, 0);
+}
+
+// ===== Feedback JS =====
+function copyTpl() {
+    const text = document.getElementById('tplText').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.innerText = '✅ 已复制！';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.innerText = '📋 复制模板';
+            btn.classList.remove('copied');
+        }, 2000);
+    }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        alert('已复制到剪贴板');
+    });
+}
+
+document.addEventListener('click', (e) => {
+    if (e.target.classList.contains('rating-btn')) {
+        document.querySelectorAll('.rating-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        const rating = e.target.dataset.rating;
+        const emoji = ['😫','😕','😐','🙂','😄'][rating-1];
+        const feedback = `## 快速评分\n\n综合评分：${rating} / 5 ${emoji}\n\n提交者 DPI：___\n具体反馈：___`;
+        navigator.clipboard.writeText(feedback).then(() => {
+            setTimeout(() => e.target.classList.remove('active'), 500);
+        });
+    }
+});
+
+// 默认激活测试工具按钮
+document.addEventListener('DOMContentLoaded', () => {
+    const btns = document.querySelectorAll('.hero-nav-btn');
+    if (btns[0]) btns[0].classList.add('active');
+});
+</script>
+
 </body>
 </html>

@@ -61,6 +61,10 @@
             border:1px solid #2c2c2c;
             border-left: 3px solid #F5A623;
         }
+        /* IMPROVE(H)：辅助测试面板使用灰色左边框，与主测试的橙色形成层级区分 */
+        .panel-sub{
+            border-left: 3px solid #6B7280;
+        }
         .panel p {
             color:#d4d4d4;
             font-size:14px;
@@ -139,6 +143,12 @@
             line-height:1.6;
             margin:10px 0;
         }
+        /* IMPROVE(E)：结果数值更新时的闪烁动画（0.4s 一次） */
+        @keyframes resultPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .pulse { animation: resultPulse 0.4s ease 1; }
 
         /* ===== DPI 输入 ===== */
         .dpi-row{
@@ -441,7 +451,8 @@
     <canvas id="testCanvas"></canvas>
 
     <!-- 测试2：主观追踪测试 -->
-    <div class="panel">
+    <!-- IMPROVE(H)：辅助测试面板改为灰色左边框 -->
+    <div class="panel panel-sub">
         <h3>② 主观追踪测试（模拟开镜跟枪）</h3>
         <!-- FIX(8)：明确标注本测试仅为手眼协调练习，不参与灵敏度计算 -->
         <p class="result-text">⚠ 本测试<strong>仅用于手眼协调练习，不参与灵敏度计算</strong>。点击开始后倒计时3秒，红点随机出现在画布中并沿随机轨迹移动，请尽量用准星跟随红点，10秒后自动结束。</p >
@@ -453,7 +464,8 @@
     </div>
 
     <!-- 测试3：定位急停测试 -->
-    <div class="panel">
+    <!-- IMPROVE(H)：辅助测试面板改为灰色左边框 -->
+    <div class="panel panel-sub">
         <h3>③ 定位急停测试（模拟近战急停定位）</h3>
         <p class="result-text">目标会随机出现在画布内，尽快移动鼠标对准目标，点击鼠标左键确认命中。共10次。</p >
         <!-- FIX(10)：命中判定半径可配置，默认由 25px 收紧为 14px，提高测试区分度 -->
@@ -471,7 +483,8 @@
     </div>
 
     <!-- 测试4：缩放模拟瞄准测试 -->
-    <div class="panel">
+    <!-- IMPROVE(H)：辅助测试面板改为灰色左边框 -->
+    <div class="panel panel-sub">
         <h3>④ 缩放模拟瞄准测试（模拟倍镜精细瞄准）</h3>
         <p class="result-text">画布会模拟不同倍率放大，小目标出现，请精准对准。倍率越大视野越窄，点击切换下一倍率。</p >
         <canvas id="zoomCanvas" class="sub-canvas"></canvas>
@@ -503,6 +516,8 @@
         <div class="recommend-box" id="scopeRecommendBox" style="display:none;"></div>
         <br>
         <button id="saveBtn">保存参数到本地</button>
+        <!-- IMPROVE(J)：导出测试结果摘要到剪贴板 -->
+        <button id="exportBtn" class="secondary">导出摘要</button>
         <button id="loadBtn" class="secondary">读取已保存参数</button>
         <button id="refBtn" class="ref-btn">查看职业选手灵敏度参考</button>
         <button id="streamerBtn" class="streamer-btn">查看主播灵敏度参考</button>
@@ -513,7 +528,7 @@
         <div class="modal">
             <button class="modal-close" id="modalClose">×</button>
             <h2>PUBG 职业选手灵敏度参考</h2>
-            <div class="desc">点击选手名字查看详细参数；点击「查看全部汇总」查看所有选手完整参数表。黄色高亮为与你的测试结果（cm/360 口径）接近的选手。</div>
+            <div class="desc">点击选手名字查看详细参数；点击「查看全部汇总」查看所有选手完整参数表。黄色高亮为与你的测试结果（cm/360 口径）接近的选手。<!-- IMPROVE(G) -->🔹 表示与你 cm/360 接近的选手。</div>
             <div id="proNameList" class="name-list"></div>
             <div id="proDetail" class="detail-area"></div>
             <div id="proSummary" class="summary-area" style="display:none;"></div>
@@ -525,7 +540,7 @@
         <div class="modal">
             <button class="modal-close" id="streamerModalClose">×</button>
             <h2>PUBG 主播灵敏度参考</h2>
-            <div class="desc">点击主播名字查看详细参数；点击「查看全部汇总」查看所有主播完整参数表。黄色高亮为与你的测试结果（cm/360 口径）接近的主播。</div>
+            <div class="desc">点击主播名字查看详细参数；点击「查看全部汇总」查看所有主播完整参数表。黄色高亮为与你的测试结果（cm/360 口径）接近的主播。<!-- IMPROVE(G) -->🔹 表示与你 cm/360 接近的主播。</div>
             <div id="streamerNameList" class="name-list"></div>
             <div id="streamerDetail" class="detail-area"></div>
             <div id="streamerSummary" class="summary-area" style="display:none;"></div>
@@ -556,6 +571,8 @@ const resetBtn = document.getElementById('resetBtn');
 
 let isTesting = false;       // 主测试进行中（含等待滑动）
 let isFinished = false;      // FIX(4)：结果是否已锁定（完成测试/应用历史后为 true）
+// IMPROVE(A)：画布锁定蒙层标志——完成测试后置 true，禁止继续滑动；重置/重新开始时清空
+let isCanvasLocked = false;
 let isMouseDown = false;
 // FIX(2)：不再使用 totalMouseDeltaX 累加所有滑动距离（会导致结果严重偏高）。
 // 改为按「每次按住鼠标滑动的单次水平位移」记录，最终取多次滑动的平均值。
@@ -564,6 +581,12 @@ let curStrokeDelta = 0;      // 当前这一次按住滑动的水平位移累计
 let lastScreenX = null;      // FIX(5)：movementX 不可用/为0时用 screenX 差值兜底
 // 分段存储轨迹：每个元素是一段（一次按住滑动的点集合），段之间不连线
 let trajectorySegments = [];
+// IMPROVE(K)：每段轨迹对应的颜色（与 trajectorySegments 一一对应）
+let segmentColors = [];
+// IMPROVE(K)：多段滑动轨迹的分色色板
+const strokeColors = ['#5b8db5','#f59e0b','#ef4444','#22c55e','#a855f7','#ec4899','#14b8a6'];
+// IMPROVE(C)：缓存最近一次倍镜推荐结果（渲染时同步更新，供历史保存/导出摘要使用）
+let lastScopeRec = null;
 
 // 适配画布真实尺寸
 function resizeCanvas(){
@@ -667,9 +690,19 @@ function updateStatusBadge(){
 }
 
 // FIX(4)：按测试阶段切换「开始/完成」按钮的可用状态
+// IMPROVE(D)：同时更新「完成测试」按钮的悬浮提示，说明当前不可用的原因
 function updateButtonStates(){
     startBtn.disabled = (isTesting && !isFinished);
     finishBtn.disabled = (!isTesting || isFinished);
+    if(!isTesting){
+        finishBtn.title = "请先点击「开始测试」";
+    } else if(!isFinished && getAvgStrokePx() <= 0){
+        finishBtn.title = "请至少完成一次有效滑动";
+    } else if(isFinished){
+        finishBtn.title = "结果已锁定，点击「重置」可重新测试";
+    } else {
+        finishBtn.title = "停止采集并锁定当前结果";
+    }
 }
 
 function drawHint(){
@@ -677,23 +710,34 @@ function drawHint(){
     ctx.fillStyle = "#161616";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // IMPROVE(L)：绘制极淡辅助网格线，提供滑动参照系
+    ctx.strokeStyle = '#222';
+    ctx.lineWidth = 0.5;
+    for (let x = 0; x <= canvas.width; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y <= canvas.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+
     // 绘制轨迹（分段，段间不连线）
-    ctx.strokeStyle = "#5b8db5";
+    // IMPROVE(K)：每段轨迹分配不同颜色，便于区分多次滑动
     ctx.lineWidth = 2.5;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
 
     let allPoints = [];
-    for(const seg of trajectorySegments){
-        if(seg.length < 2) continue;
+    trajectorySegments.forEach((seg, idx) => {
+        if(seg.length < 2) return;
         allPoints = allPoints.concat(seg);
+        ctx.strokeStyle = segmentColors[idx] || strokeColors[0];
         ctx.beginPath();
         ctx.moveTo(seg[0].x, seg[0].y);
         for(let i = 1; i < seg.length; i++){
             ctx.lineTo(seg[i].x, seg[i].y);
         }
         ctx.stroke();
-    }
+    });
 
     // 起点（第一段首点）和终点（最后一段末点）标记
     if(allPoints.length > 1){
@@ -709,21 +753,11 @@ function drawHint(){
         ctx.fill();
     }
 
-    // 实时数据显示（右上角）
-    // FIX(1)：以像素计数为相对参考显示，不再伪装为精确物理距离
-    if(isTesting && (curStrokeDelta > 0 || strokeDeltas.length > 0)){
-        let txt = "本次 " + Math.round(curStrokeDelta) + " px";
-        if(strokeDeltas.length > 0){
-            txt += " · 平均 " + Math.round(getAvgStrokePx()) + " px";
-        }
-        ctx.fillStyle = "#f0f0f0";
-        ctx.font = "bold 15px sans-serif";
-        ctx.textAlign = "right";
-        ctx.fillText(txt, canvas.width - 16, 28);
-    }
-
     // FIX(11)：提示文字移到画布底部，避免遮挡中央轨迹
-    ctx.fillStyle = "#888";
+    // IMPROVE(F)：提示文字提亮（#888→#aaa）并加阴影，提升深色背景上的可读性
+    ctx.fillStyle = "#aaa";
+    ctx.shadowColor = "rgba(0,0,0,0.9)";
+    ctx.shadowBlur = 8;
     ctx.font = "16px sans-serif";
     ctx.textAlign = "center";
     let hint;
@@ -737,6 +771,41 @@ function drawHint(){
         hint = "继续滑动…松开鼠标结束本次滑动";
     }
     ctx.fillText(hint, canvas.width / 2, canvas.height - 24);
+    ctx.shadowBlur = 0;
+
+    // IMPROVE(A)：完成测试后在画布中央叠加锁定蒙层（视觉反馈 + 操作提示）
+    if(isCanvasLocked){
+        ctx.fillStyle = "rgba(22,22,22,0.75)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.textAlign = "center";
+        ctx.font = "48px sans-serif";
+        ctx.fillText("✅", canvas.width / 2, canvas.height / 2 - 40);
+        ctx.fillStyle = "#F5A623";
+        ctx.font = "bold 24px sans-serif";
+        ctx.fillText("结果已锁定", canvas.width / 2, canvas.height / 2 + 16);
+        ctx.fillStyle = "#888";
+        ctx.font = "14px sans-serif";
+        ctx.fillText("点击「重置」可重新测试", canvas.width / 2, canvas.height / 2 + 52);
+    }
+
+    // 实时数据显示（右上角）——画在蒙层之后，保证锁定状态下仍清晰可见
+    // FIX(1)：以像素计数为相对参考显示，不再伪装为精确物理距离
+    // IMPROVE(B)：锁定后显示「锁定值」，与主结果区一致；未开始/已重置时（isTesting=false）不显示任何数据
+    if(isTesting && (curStrokeDelta > 0 || strokeDeltas.length > 0)){
+        let txt;
+        if(isFinished){
+            txt = "📌 锁定值：" + Math.round(getAvgStrokePx()) + " px";
+        } else {
+            txt = "本次 " + Math.round(curStrokeDelta) + " px";
+            if(strokeDeltas.length > 0){
+                txt += " · 平均 " + Math.round(getAvgStrokePx()) + " px";
+            }
+        }
+        ctx.fillStyle = "#f0f0f0";
+        ctx.font = "bold 15px sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(txt, canvas.width - 16, 28);
+    }
 }
 
 // 生成个性化推荐文本（cm360 为 cm/360 口径）
@@ -764,6 +833,7 @@ function renderScopeRecommend(){
     const userCm = getCurrentCm360();
     if(!(userSens > 0) || userCm === null){
         box.style.display = "none";
+        lastScopeRec = null; // IMPROVE(C)：无有效结果时清空缓存
         return;
     }
     let best = null, bestDiff = Infinity;
@@ -771,9 +841,19 @@ function renderScopeRecommend(){
         const d = Math.abs(refCm360(p) - userCm);
         if(d < bestDiff){ bestDiff = d; best = p; }
     }
-    if(!best){ box.style.display = "none"; return; }
+    if(!best){ box.style.display = "none"; lastScopeRec = null; return; }
     const ratio = (best.sens * best.dpi) / (userSens * getDPI());
     const s = (v) => Math.max(1, Math.min(100, Math.round(v * ratio)));
+    // IMPROVE(C)：缓存本次倍镜推荐数据（与展示内容一致），供历史保存/导出摘要使用
+    lastScopeRec = [
+        { label: "红点/全息", value: s(best.scope1x) },
+        { label: "2x", value: s(best.scope2x) },
+        { label: "3x", value: s(best.scope3x) },
+        { label: "4x", value: s(best.scope4x) },
+        { label: "6x", value: s(best.scope6x) },
+        { label: "8x", value: s(best.scope8x) },
+        { label: "15x", value: s(best.scope15x) }
+    ];
     box.innerHTML =
         '<span class="tag">倍镜推荐</span>' +
         '参考模板：<strong>' + best.name + '</strong>（其 cm/360 ≈ ' + refCm360(best).toFixed(1) + 'cm）<br>' +
@@ -782,6 +862,23 @@ function renderScopeRecommend(){
         ' · 15x ' + s(best.scope15x) +
         '<br><span style="color:#888;font-size:12px;">按你的常规灵敏度与模板选手的比例折算，仅作起步参考，建议进入训练场微调。</span>';
     box.style.display = "block";
+}
+
+// IMPROVE(E)：给结果数值添加短暂闪烁动画（0.4s 后自动移除），让用户感知到重新计算
+let pulseTimer = null;
+function pulseResultValues(){
+    ['cm360','sensResult','vertResult'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('pulse');
+        void el.offsetWidth; // 强制重排，确保连续更新时动画能重新触发
+        el.classList.add('pulse');
+    });
+    if(pulseTimer) clearTimeout(pulseTimer);
+    pulseTimer = setTimeout(() => {
+        ['cm360','sensResult','vertResult'].forEach(id => {
+            document.getElementById(id).classList.remove('pulse');
+        });
+    }, 400);
 }
 
 // 统一更新结果与推荐（测试中实时刷新，完成后锁定）
@@ -795,6 +892,8 @@ function updateResults(){
     document.getElementById('cm360').innerText = cm360.toFixed(2);
     document.getElementById('sensResult').innerText = res.sens;
     document.getElementById('vertResult').innerText = res.vert;
+    // IMPROVE(E)：每次数值更新触发闪烁动画
+    pulseResultValues();
 
     // 显示个性化推荐
     const box = document.getElementById('recommendBox');
@@ -811,10 +910,14 @@ document.getElementById('startBtn').onclick=()=>{
     isTesting = true;
     isFinished = false;
     isMouseDown = false;
+    // IMPROVE(A)：重新开始测试时解除画布锁定（移除蒙层）
+    isCanvasLocked = false;
     strokeDeltas = [];
     curStrokeDelta = 0;
     lastScreenX = null;
     trajectorySegments = [];
+    // IMPROVE(K)：重置轨迹颜色序列
+    segmentColors = [];
     document.getElementById('avgPx').innerText = "--";
     document.getElementById('cm360').innerText = "--";
     document.getElementById('sensResult').innerText = "--";
@@ -836,6 +939,8 @@ document.getElementById('finishBtn').onclick=()=>{
     isFinished = true;
     isMouseDown = false;
     lastScreenX = null;
+    // IMPROVE(A)：锁定画布——叠加蒙层，并由 mousedown/touchstart 拦截后续操作
+    isCanvasLocked = true;
     updateResults();
     saveLatestResult(); // FIX(15)：完成后自动保存最新结果
     updateStatusBadge();
@@ -847,10 +952,14 @@ document.getElementById('resetBtn').onclick=()=>{
     isTesting = false;
     isFinished = false;
     isMouseDown = false;
+    // IMPROVE(A)：重置时解除画布锁定（移除蒙层）
+    isCanvasLocked = false;
     strokeDeltas = [];
     curStrokeDelta = 0;
     lastScreenX = null;
     trajectorySegments = [];
+    // IMPROVE(K)：清空轨迹颜色
+    segmentColors = [];
     document.getElementById('avgPx').innerText = "--";
     document.getElementById('cm360').innerText = "--";
     document.getElementById('sensResult').innerText = "--";
@@ -864,7 +973,8 @@ document.getElementById('resetBtn').onclick=()=>{
 
 // 鼠标按键状态：仅按住左键时记录
 canvas.addEventListener('mousedown', (e) => {
-    if(e.button !== 0 || !isTesting || isFinished) return;
+    // IMPROVE(A)：画布锁定时直接拦截，禁止继续操作
+    if(e.button !== 0 || !isTesting || isFinished || isCanvasLocked) return;
     isMouseDown = true;
     // FIX(2)：每次按住重新计一次位移，避免跨滑动累加
     curStrokeDelta = 0;
@@ -873,6 +983,8 @@ canvas.addEventListener('mousedown', (e) => {
     // 新建一段轨迹
     const rect = canvas.getBoundingClientRect();
     trajectorySegments.push([{ x: e.clientX - rect.left, y: e.clientY - rect.top }]);
+    // IMPROVE(K)：为新一段轨迹分配色板中的下一种颜色
+    segmentColors.push(strokeColors[segmentColors.length % strokeColors.length]);
     updateStatusBadge();
     drawHint();
 });
@@ -925,7 +1037,8 @@ window.addEventListener('mousemove', (e) => {
 // FIX(13)：主画布移动端触摸支持（单指滑动等效按住左键滑动）
 let lastTouchX = null, lastTouchY = null;
 canvas.addEventListener('touchstart', (e) => {
-    if(!isTesting || isFinished) return;
+    // IMPROVE(A)：画布锁定时直接拦截触摸操作
+    if(!isTesting || isFinished || isCanvasLocked) return;
     e.preventDefault();
     const t = e.touches[0];
     isMouseDown = true;
@@ -934,6 +1047,8 @@ canvas.addEventListener('touchstart', (e) => {
     lastTouchY = t.clientY;
     const rect = canvas.getBoundingClientRect();
     trajectorySegments.push([{ x: t.clientX - rect.left, y: t.clientY - rect.top }]);
+    // IMPROVE(K)：为新一段轨迹分配色板中的下一种颜色
+    segmentColors.push(strokeColors[segmentColors.length % strokeColors.length]);
     updateStatusBadge();
     drawHint();
 }, {passive:false});
@@ -1033,8 +1148,12 @@ function restoreLatestResult(){
         if(d.avgPx){ document.getElementById('avgPx').innerText = d.avgPx; }
         isFinished = true;
         document.getElementById('recommendBox').style.display = "block";
+        // IMPROVE(I)：恢复时显示测试时间戳，让用户知道数据来源；无时间戳时给出降级文案
+        const timeLabel = (typeof d.time === 'number' && d.time > 0)
+            ? "🕐 恢复自 " + formatTime(d.time) + "："
+            : "🕐 上次测试（时间未知）：";
         document.getElementById('recommendText').textContent =
-            "已恢复上次测试结果：" + getRecommendation(cm, d.sens || "--", d.vert || "--");
+            timeLabel + getRecommendation(cm, d.sens || "--", d.vert || "--");
         renderScopeRecommend();
         updateStatusBadge();
         updateButtonStates();
@@ -1051,6 +1170,10 @@ document.getElementById('saveBtn').onclick=()=>{
     const dpi = getDPI();
     try {
         const arr = getHistory();
+        // IMPROVE(C)：将倍镜推荐以「标签 数值」逗号分隔形式存入 scopeRec 字段
+        const scopeRec = lastScopeRec
+            ? lastScopeRec.map(s => s.label + " " + s.value).join(",")
+            : "";
         arr.push({
             id: Date.now(),
             time: Date.now(),
@@ -1058,7 +1181,8 @@ document.getElementById('saveBtn').onclick=()=>{
             sens: sen,
             vert: ver,
             dpi: dpi,
-            avgPx: document.getElementById('avgPx').innerText
+            avgPx: document.getElementById('avgPx').innerText,
+            scopeRec: scopeRec
         });
         saveHistory(arr);
         alert("参数已保存（共 " + arr.length + " 条记录）");
@@ -1066,6 +1190,36 @@ document.getElementById('saveBtn').onclick=()=>{
         alert("保存失败：" + err.message);
     }
 }
+
+// IMPROVE(J)：导出测试结果摘要——优先复制到剪贴板，失败则弹窗供用户手动复制
+document.getElementById('exportBtn').onclick = () => {
+    const sen = document.getElementById('sensResult').innerText;
+    if(sen === "--" || !sen){ alert("请先完成测试再导出"); return; }
+    const scopeLine = (lastScopeRec && lastScopeRec.length > 0)
+        ? lastScopeRec.map(s => s.label + " " + s.value).join(" · ")
+        : "--";
+    const text =
+        "PUBG 灵敏度校准结果\n" +
+        "─────────────────\n" +
+        "测试时间: " + formatTime(Date.now()) + "\n" +
+        "DPI: " + getDPI() + "\n" +
+        "cm/360: " + document.getElementById('cm360').innerText + " cm\n" +
+        "常规灵敏度: " + sen + "\n" +
+        "垂直灵敏度: " + document.getElementById('vertResult').innerText + "\n" +
+        "倍镜推荐: " + scopeLine;
+    const btn = document.getElementById('exportBtn');
+    const showCopied = () => {
+        btn.textContent = "✅ 已复制";
+        setTimeout(() => { btn.textContent = "导出摘要"; }, 1500);
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(text).then(showCopied).catch(() => {
+            prompt("自动复制失败，请手动复制以下内容：", text);
+        });
+    } else {
+        prompt("当前浏览器不支持自动复制，请手动复制以下内容：", text);
+    }
+};
 
 // 渲染历史记录列表
 function renderHistoryList(){
@@ -1079,6 +1233,15 @@ function renderHistoryList(){
     arr.sort((a,b) => b.time - a.time);
     list.innerHTML = arr.map(item => {
         const pxSpan = item.avgPx ? '<span>平均位移: <strong>' + item.avgPx + '</strong> px</span>' : "";
+        // IMPROVE(C)：倍镜推荐缩略预览（仅显示前 3 个倍率，其余用 ... 省略）
+        let scopeSpan = "";
+        if(item.scopeRec && typeof item.scopeRec === 'string'){
+            const parts = item.scopeRec.split(',').map(s => s.trim()).filter(Boolean);
+            if(parts.length > 0){
+                const preview = parts.slice(0, 3).join(" / ") + (parts.length > 3 ? " / ..." : "");
+                scopeSpan = '<span>倍镜: <strong>' + preview + '</strong></span>';
+            }
+        }
         return `
         <div class="history-item">
             <div class="history-info">
@@ -1089,6 +1252,7 @@ function renderHistoryList(){
                     <span>常规: <strong>${item.sens}</strong></span>
                     <span>垂直: <strong>${item.vert}</strong></span>
                     ${pxSpan}
+                    ${scopeSpan}
                 </div>
             </div>
             <div class="history-btns">
@@ -1121,7 +1285,27 @@ function applyHistoryRecord(id){
     document.getElementById('recommendBox').style.display = "block";
     document.getElementById('recommendText').textContent =
         "已应用历史记录：" + getRecommendation(cm, item.sens || "--", item.vert || "--");
-    renderScopeRecommend();
+    // IMPROVE(C)：优先恢复历史记录中保存的倍镜推荐数据；无 scopeRec 则隐藏倍镜面板
+    const scopeBox = document.getElementById('scopeRecommendBox');
+    if(item.scopeRec && typeof item.scopeRec === 'string'){
+        const parts = item.scopeRec.split(',').map(s => s.trim()).filter(Boolean);
+        if(parts.length > 0){
+            // 同步重建 lastScopeRec 缓存，保证「导出摘要」等后续功能可用
+            lastScopeRec = parts.map(part => {
+                const sp = part.split(' ');
+                return { label: sp[0], value: parseInt(sp[sp.length - 1], 10) || 0 };
+            });
+            scopeBox.innerHTML = '<span class="tag">倍镜推荐</span>已恢复历史记录：' + parts.join(' · ') +
+                '<br><span style="color:#888;font-size:12px;">如需按当前 DPI 重新折算，可重新完成一次测试。</span>';
+            scopeBox.style.display = "block";
+        } else {
+            lastScopeRec = null;
+            scopeBox.style.display = "none";
+        }
+    } else {
+        lastScopeRec = null;
+        scopeBox.style.display = "none";
+    }
     updateStatusBadge();
     updateButtonStates();
     document.getElementById('historyModal').classList.remove('show');
@@ -1179,7 +1363,7 @@ function isHighlight(p){
 function renderNameList(listEl, data, type){
     const hl = type === "pro" ? "pro" : "streamer";
     let html = data.map((p, i) =>
-        `<button class="name-btn${isHighlight(p) ? ' highlight-name' : ''}" data-idx="${i}" data-type="${hl}">${p.name}${isHighlight(p) ? ' ⭐' : ''}</button>`
+        `<button class="name-btn${isHighlight(p) ? ' highlight-name' : ''}" data-idx="${i}" data-type="${hl}">${p.name}${isHighlight(p) ? ' 🔹' : ''}</button>`
     ).join("");
     html += `<button class="name-btn summary-btn" data-type="${hl}" data-summary="1">查看全部汇总</button>`;
     listEl.innerHTML = html;
@@ -1194,6 +1378,14 @@ function renderNameList(listEl, data, type){
             }
         };
     });
+    // IMPROVE(M)：渲染完成后自动选中与用户 cm/360 最接近的选手并展开详情；
+    // 无匹配时选中第一个。延时 50ms 确保模态框已显示、DOM 已就绪。
+    setTimeout(() => {
+        const playerBtns = listEl.querySelectorAll('.name-btn:not([data-summary])');
+        if(playerBtns.length === 0) return;
+        const hlBtn = listEl.querySelector('.name-btn.highlight-name');
+        (hlBtn || playerBtns[0]).click();
+    }, 50);
 }
 
 function showDetail(type, idx){
@@ -1207,7 +1399,7 @@ function showDetail(type, idx){
     detailEl.innerHTML = `
         <table>
             <tr><th>参数</th><th>数值</th></tr>
-            <tr><td>名字</td><td><strong>${p.name}</strong>${hl ? ' ⭐ 接近你的灵敏度' : ''}</td></tr>
+            <tr><td>名字</td><td><strong>${p.name}</strong>${hl ? ' 🔹 接近你的灵敏度' : ''}</td></tr>
             <tr><td>DPI</td><td>${p.dpi}</td></tr>
             <tr><td>常规灵敏度</td><td>${p.sens}</td></tr>
             <tr><td>换算 cm/360</td><td>≈ ${refCm360(p).toFixed(1)} cm</td></tr>
@@ -1235,7 +1427,7 @@ function showSummary(type){
     let rows = data.map(p => {
         const hl = isHighlight(p);
         return `<tr class="${hl ? 'highlight-row' : ''}">
-            <td>${p.name}${hl ? ' ⭐' : ''}</td>
+            <td>${p.name}${hl ? ' 🔹' : ''}</td>
             <td>${p.dpi}</td><td>${p.sens}</td>
             <td>≈ ${refCm360(p).toFixed(1)} cm</td><td>${p.vert.toFixed(2)}</td>
             <td>${p.aim}</td><td>${p.fire}</td>
